@@ -16,6 +16,7 @@ const Login = ({ onLogin }) => {
     const [email, setEmail] = useState('');
     const [studentName, setStudentName] = useState('');
     const [studentEmail, setStudentEmail] = useState('');
+    const [studentPassword, setStudentPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
@@ -24,77 +25,89 @@ const Login = ({ onLogin }) => {
         setError('');
         setIsLoading(true);
 
-        // Simulate network delay
         await new Promise(resolve => setTimeout(resolve, 800));
+
+        // Unified User Database
+        const users = JSON.parse(localStorage.getItem('ielts_users') || '[]');
 
         if (role === 'teacher') {
             if (isRegister) {
-                // Register new teacher
                 if (username.trim().length >= 3 && password.length >= 5 && email.includes('@')) {
-                    // Store teacher data in localStorage (simple implementation)
-                    const teachers = JSON.parse(localStorage.getItem('teachers') || '[]');
+                    const existing = users.find(u => u.username === username || u.email === email);
+                    if (existing) {
+                        setError('User with this username or email already exists.');
+                        setIsLoading(false);
+                        return;
+                    }
+
                     const newTeacher = {
                         id: Date.now(),
+                        role: 'teacher',
                         username: username.trim(),
                         email: email.trim(),
-                        name: username.trim(),
-                        password: password // In production, this should be hashed
+                        name: username.trim(), // Use username as display name for now
+                        password: password
                     };
-                    teachers.push(newTeacher);
-                    localStorage.setItem('teachers', JSON.stringify(teachers));
-                    onLogin({ role: 'teacher', name: username.trim(), id: newTeacher.id });
+                    users.push(newTeacher);
+                    localStorage.setItem('ielts_users', JSON.stringify(users));
+                    onLogin(newTeacher);
                 } else {
                     setError('Please fill all fields correctly (username: 3+ chars, password: 5+ chars, valid email)');
                     setIsLoading(false);
                 }
             } else {
-                // Login existing teacher
-                const teachers = JSON.parse(localStorage.getItem('teachers') || '[]');
-                const teacher = teachers.find(t => 
-                    (t.username === username || t.email === username) && t.password === password
-                ) || (username === 'admin' && password === '12345' ? { name: 'Administrator', id: 1 } : null);
-                
+                const teacher = users.find(u =>
+                    u.role === 'teacher' &&
+                    (u.username === username || u.email === username) &&
+                    u.password === password
+                );
+
                 if (teacher) {
-                    onLogin({ role: 'teacher', name: teacher.name || 'Administrator', id: teacher.id || 1 });
+                    onLogin(teacher);
+                } else if (username === 'admin' && password === '12345') {
+                    onLogin({ role: 'teacher', name: 'Administrator', id: 1 });
                 } else {
-                    setError('Invalid credentials. Please check your username/email and password.');
+                    setError('Invalid credentials.');
                     setIsLoading(false);
                 }
             }
         } else {
-            // Student Register/Login
+            // Student Logic
             if (isRegister) {
-                if (studentName.trim().length >= 2 && studentEmail.includes('@')) {
-                    const students = JSON.parse(localStorage.getItem('students') || '[]');
+                if (studentName.trim().length >= 2 && studentEmail.includes('@') && studentPassword.length >= 4) {
+                    const existing = users.find(u => u.username === studentName || u.email === studentEmail);
+                    if (existing) {
+                        setError('Student with this name or email already exists.');
+                        setIsLoading(false);
+                        return;
+                    }
+
                     const newStudent = {
                         id: Date.now(),
-                        name: studentName.trim(),
-                        email: studentEmail.trim()
+                        role: 'student',
+                        name: studentName.trim(), // Display name
+                        username: studentName.trim(), // Treat name as username key for simplicity
+                        email: studentEmail.trim(),
+                        password: studentPassword
                     };
-                    students.push(newStudent);
-                    localStorage.setItem('students', JSON.stringify(students));
-                    onLogin({ role: 'student', name: studentName.trim(), id: newStudent.id });
+                    users.push(newStudent);
+                    localStorage.setItem('ielts_users', JSON.stringify(users));
+                    onLogin(newStudent);
                 } else {
-                    setError('Please enter a valid name (2+ characters) and email address.');
+                    setError('Please enter valid details and a password (min 4 chars).');
                     setIsLoading(false);
                 }
             } else {
-                // Student Login
-                if (studentName.trim().length >= 2) {
-                    const students = JSON.parse(localStorage.getItem('students') || '[]');
-                    const student = students.find(s => 
-                        s.name.toLowerCase() === studentName.trim().toLowerCase() || 
-                        s.email === studentName.trim()
-                    );
-                    
-                    if (student) {
-                        onLogin({ role: 'student', name: student.name, id: student.id });
-                    } else {
-                        // Allow login even if not registered (auto-register)
-                        onLogin({ role: 'student', name: studentName.trim(), id: Date.now() });
-                    }
+                const student = users.find(u =>
+                    u.role === 'student' &&
+                    (u.username === studentName.trim() || u.email === studentName.trim()) &&
+                    u.password === studentPassword
+                );
+
+                if (student) {
+                    onLogin(student);
                 } else {
-                    setError('Please enter your full name or email');
+                    setError('Invalid credentials.');
                     setIsLoading(false);
                 }
             }
@@ -232,47 +245,63 @@ const Login = ({ onLogin }) => {
                                         />
                                     </div>
                                 )}
-                            </>
+                            </div>
+                                )}
+                        <div className="input-group slide-in" style={{ animationDelay: '0.1s' }}>
+                            <div className="input-icon">
+                                <LockIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
+                            </div>
+                            <input
+                                type="password"
+                                placeholder="Password"
+                                value={studentPassword}
+                                onChange={(e) => setStudentPassword(e.target.value)}
+                                className="glass-input"
+                                required
+                                minLength={4}
+                            />
+                        </div>
+                    </>
                         )}
 
-                        {error && <div className="login-error scale-in">{error}</div>}
+                    {error && <div className="login-error scale-in">{error}</div>}
 
-                        <button
-                            type="submit"
-                            className={`glass-btn-primary ${isLoading ? 'loading' : ''}`}
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <span className="loader"></span>
-                            ) : (
-                                <>
-                                    {isRegister ? (
-                                        <PersonAddIcon sx={{ fontSize: 20 }} />
-                                    ) : (
-                                        <LoginIcon sx={{ fontSize: 20 }} />
-                                    )}
-                                    <span>
-                                        {isRegister 
-                                            ? (role === 'teacher' ? 'Create Account' : 'Join as Student')
-                                            : (role === 'teacher' ? 'Sign In to Dashboard' : 'View My Schedule')
-                                        }
-                                    </span>
-                                </>
-                            )}
-                        </button>
-                    </form>
+                    <button
+                        type="submit"
+                        className={`glass-btn-primary ${isLoading ? 'loading' : ''}`}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <span className="loader"></span>
+                        ) : (
+                            <>
+                                {isRegister ? (
+                                    <PersonAddIcon sx={{ fontSize: 20 }} />
+                                ) : (
+                                    <LoginIcon sx={{ fontSize: 20 }} />
+                                )}
+                                <span>
+                                    {isRegister
+                                        ? (role === 'teacher' ? 'Create Account' : 'Join as Student')
+                                        : (role === 'teacher' ? 'Sign In to Dashboard' : 'View My Schedule')
+                                    }
+                                </span>
+                            </>
+                        )}
+                    </button>
+                </form>
 
-                    <div className="login-footer">
-                        <p>
-                            {isRegister 
-                                ? (role === 'teacher' ? 'Create your teaching account' : 'Start your learning journey')
-                                : (role === 'teacher' ? 'Secured Administrative Access' : 'Student Portal Entry')
-                            }
-                        </p>
-                    </div>
+                <div className="login-footer">
+                    <p>
+                        {isRegister
+                            ? (role === 'teacher' ? 'Create your teaching account' : 'Start your learning journey')
+                            : (role === 'teacher' ? 'Secured Administrative Access' : 'Student Portal Entry')
+                        }
+                    </p>
                 </div>
             </div>
         </div>
+        </div >
     );
 };
 

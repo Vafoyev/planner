@@ -107,11 +107,11 @@ const TaskCard = ({
                 </div>
 
                 {/* Scoring Section */}
-                <div className="task-scoring flex items-center gap-6">
-                    {/* Score Input/Display */}
-                    <div className="score-box flex flex-col items-center">
-                        <span className="score-label text-[10px] uppercase text-zinc-600 font-bold mb-1">Score</span>
-                        {userMode === 'teacher' && selectedStudent ? (
+                {/* Score Input/Display */}
+                <div className="score-box flex flex-col items-center">
+                    <span className="score-label text-[10px] uppercase text-zinc-600 font-bold mb-1">Score</span>
+                    {userMode === 'teacher' && selectedStudent ? (
+                        <div className="flex flex-col gap-2 items-center">
                             <div className="score-input-group flex items-center bg-black/20 rounded-lg p-1 border border-white/5">
                                 <input
                                     type="number"
@@ -137,35 +137,46 @@ const TaskCard = ({
                                     className="max-input bg-transparent text-zinc-500 text-center w-10 text-xs outline-none"
                                 />
                             </div>
-                        ) : (
-                            <div className={`score-display ${colorClass} font-mono text-lg font-bold`}>
-                                <span className={studentScore > 0 ? 'text-white' : 'text-zinc-600'}>
-                                    {studentScore > 0 ? studentScore : '—'}
-                                </span>
-                                <span className="text-zinc-600 text-sm">/{maxScore}</span>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Band Score */}
-                    <div className="band-box flex flex-col items-center min-w-[50px]">
-                        <span className="band-label text-[10px] uppercase text-zinc-600 font-bold mb-1">Band</span>
-                        <div className={`band-display text-xl font-bold font-serif ${studentScore > 0 ? 'text-amber-500' : 'text-zinc-700'}`}>
-                            {studentScore > 0 ? bandScore.toFixed(1) : '—'}
+                            {/* explicit check button for visual feedback */}
+                            <button
+                                onClick={() => onUpdateScore(studentScore > 0 ? studentScore : maxScore)} // Auto-fill max if 0, else keep
+                                className={`text-xs px-2 py-1 rounded border transition-colors ${studentScore > 0
+                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                    : 'bg-white/5 text-zinc-400 border-white/10 hover:bg-white/10'
+                                    }`}
+                                title="Mark as Checked"
+                            >
+                                {studentScore > 0 ? 'Checked' : 'Check'}
+                            </button>
                         </div>
-                    </div>
-
-                    {/* Delete (Teacher Only) */}
-                    {userMode === 'teacher' && (
-                        <button
-                            onClick={onDeleteTask}
-                            className="btn-delete opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-900/50 hover:text-red-500 hover:bg-red-500/10 rounded-full"
-                            title="Delete"
-                        >
-                            <DeleteIcon sx={{ fontSize: 20 }} />
-                        </button>
+                    ) : (
+                        <div className={`score-display ${colorClass} font-mono text-lg font-bold`}>
+                            <span className={studentScore > 0 ? 'text-white' : 'text-zinc-600'}>
+                                {studentScore > 0 ? studentScore : '—'}
+                            </span>
+                            <span className="text-zinc-600 text-sm">/{maxScore}</span>
+                        </div>
                     )}
                 </div>
+
+                {/* Band Score */}
+                <div className="band-box flex flex-col items-center min-w-[50px]">
+                    <span className="band-label text-[10px] uppercase text-zinc-600 font-bold mb-1">Band</span>
+                    <div className={`band-display text-xl font-bold font-serif ${studentScore > 0 ? 'text-amber-500' : 'text-zinc-700'}`}>
+                        {studentScore > 0 ? bandScore.toFixed(1) : '—'}
+                    </div>
+                </div>
+
+                {/* Delete (Teacher Only) */}
+                {userMode === 'teacher' && (
+                    <button
+                        onClick={onDeleteTask}
+                        className="btn-delete opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-900/50 hover:text-red-500 hover:bg-red-500/10 rounded-full"
+                        title="Delete"
+                    >
+                        <DeleteIcon sx={{ fontSize: 20 }} />
+                    </button>
+                )}
             </div>
 
             {/* Progress Bar */}

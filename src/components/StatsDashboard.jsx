@@ -84,7 +84,7 @@ const getTasksByPeriod = (tasks, period) => {
     return filtered;
 };
 
-const StatsDashboard = ({ students, selectedStudent, tasks = {} }) => {
+const StatsDashboard = ({ students, selectedStudent, tasks = {}, userMode }) => {
     const [timePeriod, setTimePeriod] = useState('overall'); // 'weekly', 'monthly', 'overall'
 
     const getStudentStats = React.useCallback((student) => {
@@ -209,6 +209,37 @@ const StatsDashboard = ({ students, selectedStudent, tasks = {} }) => {
             : { overallBand: 0, skillBands: [0, 0, 0, 0, 0, 0], progressData: [], participation: 0, completedTasks: 0, totalTasks: 0, skillScores: {} };
     }, [selectedStudent, getStudentStats]);
 
+    // Class Analytics Data (Teacher View)
+    const classAnalyticsData = useMemo(() => {
+        if (userMode !== 'teacher' || !students.length) return null;
+
+        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6'];
+
+        const datasets = students.map((student, index) => {
+            const stats = getStudentStats(student);
+            return {
+                label: student.name,
+                data: stats.progressData,
+                borderColor: colors[index % colors.length],
+                backgroundColor: colors[index % colors.length] + '20',
+                tension: 0.3,
+                pointRadius: 4,
+                fill: false
+            };
+        });
+
+        // Use the student with most data points for labels (approximate)
+        const maxDataStudent = students.reduce((prev, current) => {
+            const statsP = getStudentStats(prev);
+            const statsC = getStudentStats(current);
+            return (statsC?.progressData?.length || 0) > (statsP?.progressData?.length || 0) ? current : prev;
+        }, students[0]);
+
+        const labels = getStudentStats(maxDataStudent)?.progressLabels || [];
+
+        return { labels, datasets };
+    }, [students, userMode, getStudentStats]);
+
 
     // Chart Configs
     const chartOptions = {
@@ -238,327 +269,397 @@ const StatsDashboard = ({ students, selectedStudent, tasks = {} }) => {
             },
             x: {
                 grid: { display: false },
-                ticks: { color: '#a1a1aa' }
+                ticks: { color: '#a1a1aa' },
+                title: { display: true, text: 'Time / Tasks', color: '#52525b' }
             }
         }
-    };
-
-    const barChartData = {
-        labels: SKILLS.map(s => s.name),
-        datasets: [{
-            data: currentStats.skillBands,
-            backgroundColor: SKILLS.map(s => s.color + 'CC'),
-            borderRadius: 6,
-            barThickness: 30,
-        }]
-    };
-
-    const lineChartData = {
-        labels: currentStats.progressLabels,
-        datasets: [{
-            data: currentStats.progressData,
-            fill: true,
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            tension: 0.4,
-            pointBackgroundColor: '#09090b',
-            pointBorderColor: '#f59e0b',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-            pointHoverRadius: 6
-        }]
-    };
-
-    if (!selectedStudent && students.length > 0) {
-        return (
-            <div className="glass-panel p-16 text-center border-2 border-dashed border-white/5">
-                <div className="w-20 h-20 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-6">
-                    <AssessmentIcon sx={{ fontSize: 48, color: '#71717a' }} />
-                </div>
-                <h3 className="text-xl font-serif text-white mb-2">Select a Student</h3>
-                <p className="text-zinc-500 text-sm max-w-md mx-auto">
-                    Choose a student from the list to view their detailed performance analytics and progress insights.
-                </p>
-            </div>
-        );
     }
+};
 
-    if (!selectedStudent) return (
-        <div className="glass-panel p-16 text-center border-2 border-dashed border-white/5">
-            <div className="w-20 h-20 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-6">
-                <AssessmentIcon sx={{ fontSize: 48, color: '#71717a' }} />
-            </div>
-            <h3 className="text-xl font-serif text-white mb-2">No Students Available</h3>
-            <p className="text-zinc-500 text-sm max-w-md mx-auto">
-                Add students from the Students section to start tracking their progress.
-            </p>
-        </div>
-    );
+const barChartData = {
+    labels: SKILLS.map(s => s.name),
+    datasets: [{
+        data: currentStats.skillBands,
+        backgroundColor: SKILLS.map(s => s.color + 'CC'),
+        borderRadius: 6,
+        barThickness: 30,
+    }]
+};
 
+const lineChartData = {
+    labels: currentStats.progressLabels,
+    datasets: [{
+        data: currentStats.progressData,
+        fill: true,
+        borderColor: '#f59e0b',
+        backgroundColor: 'rgba(245, 158, 11, 0.1)',
+        tension: 0.4,
+        pointBackgroundColor: '#09090b',
+        pointBorderColor: '#f59e0b',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6
+    }]
+};
+
+if (userMode === 'teacher' && !selectedStudent && students.length > 0) {
     return (
         <div className="stats-dashboard">
-            {/* Header */}
             <header className="page-glass-header mb-8">
                 <div className="header-icon-glass">
-                    <DashboardIcon sx={{ fontSize: 28, color: '#f59e0b' }} />
+                    <AssessmentIcon sx={{ fontSize: 28, color: '#f59e0b' }} />
                 </div>
-                <div className="flex-1">
-                    <h2 className="text-2xl font-serif text-white mb-1">{selectedStudent.name}'s Statistics</h2>
-                    <p className="text-sm text-zinc-400 font-sans">Performance analytics and insights</p>
-                </div>
-
-                {/* Time Period Selector */}
-                <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 border border-white/5 mr-4">
-                    <button
-                        onClick={() => setTimePeriod('weekly')}
-                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${timePeriod === 'weekly'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'text-zinc-400 hover:text-white'
-                            }`}
-                    >
-                        Weekly
-                    </button>
-                    <button
-                        onClick={() => setTimePeriod('monthly')}
-                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${timePeriod === 'monthly'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'text-zinc-400 hover:text-white'
-                            }`}
-                    >
-                        Monthly
-                    </button>
-                    <button
-                        onClick={() => setTimePeriod('overall')}
-                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${timePeriod === 'overall'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'text-zinc-400 hover:text-white'
-                            }`}
-                    >
-                        Overall
-                    </button>
-                </div>
-
-                <div className="flex items-center gap-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-6 py-3 rounded-xl border border-amber-500/30 shadow-lg shadow-amber-900/20">
-                    <StarIcon sx={{ fontSize: 20, color: '#f59e0b' }} />
-                    <div className="text-right">
-                        <p className="text-xs text-zinc-400 uppercase tracking-wider mb-1">Overall Band</p>
-                        <p className="text-2xl font-bold text-amber-400">{currentStats.overallBand > 0 ? currentStats.overallBand.toFixed(1) : '—'}</p>
-                    </div>
+                <div>
+                    <h2 className="text-2xl font-serif text-white mb-1">Class Analytics</h2>
+                    <p className="text-sm text-zinc-400 font-sans">Compare performance across all students</p>
                 </div>
             </header>
 
-            {/* 1. Summary Cards Row */}
-            <div className="summary-grid">
-                <SummaryCard
-                    title="Overall Band"
-                    value={currentStats.overallBand > 0 ? currentStats.overallBand.toFixed(1) : "—"}
-                    subtitle={currentStats.overallBand >= 6 ? "Good Level" : "Beginner"}
-                    icon={StarIcon}
-                    color="#f59e0b"
-                />
-                <SummaryCard
-                    title="Completed Tasks"
-                    value={currentStats.completedTasks.toString()}
-                    subtitle={`Total: ${currentStats.totalTasks}`}
-                    icon={AssignmentIcon}
-                    color="#3b82f6"
-                />
-                <SummaryCard
-                    title="Attendance"
-                    value={`${currentStats.participation}%`}
-                    subtitle="Participation rate"
-                    icon={TimelineIcon}
-                    color="#10b981"
-                />
-                <SummaryCard
-                    title="Weakest Skill"
-                    value={
-                        currentStats.skillBands.every(b => b === 0)
-                            ? "—"
-                            : SKILLS[currentStats.skillBands.indexOf(Math.min(...currentStats.skillBands.filter(b => b > 0)))]?.name || "None"
-                    }
-                    subtitle="Focus area"
-                    icon={TrendingUpIcon}
-                    color="#ef4444"
-                />
-            </div>
-
-            {/* 2. Charts Row */}
-            <div className="charts-grid mt-8 gap-6">
-                <div className="glass-panel p-8 h-[450px] flex flex-col border-purple-500/20 border-2 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500/50 to-transparent"></div>
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
-                            <AssessmentIcon sx={{ fontSize: 24, color: '#a78bfa' }} />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-xl text-white font-serif">Skill Breakdown</h3>
-                            <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Performance by skill area (Bar Chart)</p>
-                        </div>
+            <div className="glass-panel p-8 border-2 border-indigo-500/20 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500/50 to-transparent"></div>
+                <div className="flex items-center justify-between mb-8">
+                    <div>
+                        <h3 className="font-semibold text-xl text-white font-serif">Student Comparison</h3>
+                        <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Progress History</p>
                     </div>
-                    <div className="flex-1 relative">
-                        <Bar data={barChartData} options={chartOptions} />
-                    </div>
-                </div>
-
-                <div className="glass-panel p-8 h-[450px] flex flex-col border-amber-500/20 border-2 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500/50 to-transparent"></div>
-                    <div className="flex items-center gap-4 mb-8">
-                        <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
-                            <ShowChartIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-xl text-white font-serif">Progress Timeline</h3>
-                            <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Learning journey over time (Line Chart)</p>
-                        </div>
-                    </div>
-                    <div className="flex-1 relative">
-                        {currentStats.progressData.length > 1 ? (
-                            <Line data={lineChartData} options={chartOptions} />
-                        ) : (
-                            <div className="flex flex-col items-center justify-center h-full text-zinc-500">
-                                <ShowChartIcon sx={{ fontSize: 48, color: '#475569', mb: 2 }} />
-                                <p className="text-sm">Not enough data to show trend</p>
-                                <p className="text-xs text-zinc-600 mt-1">Complete more tasks to see your progress</p>
+                    <div className="flex gap-2">
+                        {students.map((s, i) => (
+                            <div key={s.id} className="flex items-center gap-1 text-xs text-zinc-400">
+                                <span className="w-2 h-2 rounded-full" style={{ background: classAnalyticsData?.datasets[i]?.borderColor || '#ccc' }}></span>
+                                {s.name}
                             </div>
-                        )}
+                        ))}
                     </div>
+                </div>
+                <div className="h-[400px]">
+                    {classAnalyticsData && classAnalyticsData.labels.length > 0 ? (
+                        <Line
+                            data={classAnalyticsData}
+                            options={{
+                                ...chartOptions,
+                                plugins: {
+                                    ...chartOptions.plugins,
+                                    legend: { display: true, position: 'bottom', labels: { color: '#a1a1aa' } }
+                                }
+                            }}
+                        />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-zinc-500">
+                            <ShowChartIcon sx={{ fontSize: 48, color: '#475569', mb: 2 }} />
+                            <p>No sufficient data to display class comparison.</p>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* 3. Pie Charts Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-                {/* Skill Distribution Pie Chart */}
-                <div className="glass-panel p-8 border-emerald-500/20 border-2 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500/50 to-transparent"></div>
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
-                            <TrendingUpIcon sx={{ fontSize: 24, color: '#34d399' }} />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                {students.map(student => {
+                    const sStats = getStudentStats(student);
+                    return (
+                        <div key={student.id} className="glass-panel p-6 border border-white/5 hover:border-amber-500/30 transition-colors">
+                            <div className="flex items-center justify-between mb-4">
+                                <h4 className="font-bold text-white">{student.name}</h4>
+                                <span className={`text-sm font-bold px-2 py-1 rounded ${sStats.overallBand >= 6 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                    Band {sStats.overallBand.toFixed(1)}
+                                </span>
+                            </div>
+                            <div className="space-y-3">
+                                <div className="flex justify-between text-sm text-zinc-400">
+                                    <span>Participation</span>
+                                    <span className="text-white">{sStats.participation}%</span>
+                                </div>
+                                <div className="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                    <div className="h-full bg-blue-500" style={{ width: `${sStats.participation}%` }}></div>
+                                </div>
+                                <div className="flex justify-between text-sm text-zinc-400">
+                                    <span>Tasks Completed</span>
+                                    <span className="text-white">{sStats.completedTasks}/{sStats.totalTasks}</span>
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <h3 className="font-semibold text-xl text-white font-serif">Skills Distribution</h3>
-                            <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Tasks by skill type (Pie Chart)</p>
-                        </div>
-                    </div>
-                    <div className="h-64 flex items-center justify-center">
-                        <Pie
-                            data={{
-                                labels: SKILLS.map(s => s.name),
-                                datasets: [{
-                                    label: 'Tasks by Skill',
-                                    data: SKILLS.map(s => {
-                                        const dayMapping = {
-                                            'Listening': 'Monday',
-                                            'Reading': 'Tuesday',
-                                            'Writing': 'Wednesday',
-                                            'Speaking': 'Thursday',
-                                            'Vocabulary': 'Friday',
-                                            'Grammar': 'Friday'
-                                        };
-                                        const day = dayMapping[s.key];
-                                        const filtered = getTasksByPeriod(tasks, timePeriod);
-                                        return (filtered[day] || []).length;
-                                    }),
-                                    backgroundColor: SKILLS.map(s => s.color + 'CC'),
-                                    borderColor: SKILLS.map(s => s.color),
-                                    borderWidth: 2,
-                                }]
-                            }}
-                            options={{
-                                responsive: true,
-                                maintainAspectRatio: true,
-                                plugins: {
-                                    legend: {
-                                        position: 'bottom',
-                                        labels: {
-                                            color: '#a1a1aa',
-                                            font: { size: 11, family: 'Inter' },
-                                            padding: 12,
-                                        },
-                                    },
-                                    tooltip: {
-                                        backgroundColor: 'rgba(23, 23, 23, 0.95)',
-                                        titleColor: '#fff',
-                                        bodyColor: '#a1a1aa',
-                                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                                        borderWidth: 1,
-                                        padding: 12,
-                                    },
-                                },
-                            }}
-                        />
-                    </div>
-                </div>
-
-                {/* Task Completion Doughnut Chart */}
-                <div className="glass-panel p-8 border-blue-500/20 border-2 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500/50 to-transparent"></div>
-                    <div className="flex items-center gap-4 mb-6">
-                        <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
-                            <AssignmentIcon sx={{ fontSize: 24, color: '#60a5fa' }} />
-                        </div>
-                        <div>
-                            <h3 className="font-semibold text-xl text-white font-serif">Task Completion</h3>
-                            <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Progress overview (Doughnut Chart)</p>
-                        </div>
-                    </div>
-                    <div className="h-64 flex items-center justify-center">
-                        <Doughnut
-                            data={{
-                                labels: ['Completed', 'Pending'],
-                                datasets: [{
-                                    label: 'Tasks Status',
-                                    data: [
-                                        currentStats.completedTasks,
-                                        Math.max(0, currentStats.totalTasks - currentStats.completedTasks)
-                                    ],
-                                    backgroundColor: [
-                                        'rgba(16, 185, 129, 0.8)',
-                                        'rgba(245, 158, 11, 0.8)',
-                                    ],
-                                    borderColor: [
-                                        'rgba(16, 185, 129, 1)',
-                                        'rgba(245, 158, 11, 1)',
-                                    ],
-                                    borderWidth: 2,
-                                }]
-                            }}
-                            options={{
-                                responsive: true,
-                                maintainAspectRatio: true,
-                                plugins: {
-                                    legend: {
-                                        position: 'bottom',
-                                        labels: {
-                                            color: '#a1a1aa',
-                                            font: { size: 11, family: 'Inter' },
-                                            padding: 12,
-                                        },
-                                    },
-                                    tooltip: {
-                                        backgroundColor: 'rgba(23, 23, 23, 0.95)',
-                                        titleColor: '#fff',
-                                        bodyColor: '#a1a1aa',
-                                        borderColor: 'rgba(255, 255, 255, 0.1)',
-                                        borderWidth: 1,
-                                        padding: 12,
-                                        callbacks: {
-                                            label: (context) => {
-                                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                                const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
-                                                return `${context.label}: ${context.parsed} (${percentage}%)`;
-                                            }
-                                        }
-                                    },
-                                },
-                            }}
-                        />
-                    </div>
-                </div>
+                    );
+                })}
             </div>
-
         </div>
     );
+}
+
+if (!selectedStudent) return (
+    <div className="glass-panel p-16 text-center border-2 border-dashed border-white/5">
+        <div className="w-20 h-20 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-6">
+            <AssessmentIcon sx={{ fontSize: 48, color: '#71717a' }} />
+        </div>
+        <h3 className="text-xl font-serif text-white mb-2">No Students Available</h3>
+        <p className="text-zinc-500 text-sm max-w-md mx-auto">
+            Add students from the Students section to start tracking their progress.
+        </p>
+    </div>
+);
+
+return (
+    <div className="stats-dashboard">
+        {/* Header */}
+        <header className="page-glass-header mb-8">
+            <div className="header-icon-glass">
+                <DashboardIcon sx={{ fontSize: 28, color: '#f59e0b' }} />
+            </div>
+            <div className="flex-1">
+                <h2 className="text-2xl font-serif text-white mb-1">{selectedStudent.name}'s Statistics</h2>
+                <p className="text-sm text-zinc-400 font-sans">Performance analytics and insights</p>
+            </div>
+
+            {/* Time Period Selector */}
+            <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 border border-white/5 mr-4">
+                <button
+                    onClick={() => setTimePeriod('weekly')}
+                    className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${timePeriod === 'weekly'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'text-zinc-400 hover:text-white'
+                        }`}
+                >
+                    Weekly
+                </button>
+                <button
+                    onClick={() => setTimePeriod('monthly')}
+                    className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${timePeriod === 'monthly'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'text-zinc-400 hover:text-white'
+                        }`}
+                >
+                    Monthly
+                </button>
+                <button
+                    onClick={() => setTimePeriod('overall')}
+                    className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${timePeriod === 'overall'
+                        ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                        : 'text-zinc-400 hover:text-white'
+                        }`}
+                >
+                    Overall
+                </button>
+            </div>
+
+            <div className="flex items-center gap-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-6 py-3 rounded-xl border border-amber-500/30 shadow-lg shadow-amber-900/20">
+                <StarIcon sx={{ fontSize: 20, color: '#f59e0b' }} />
+                <div className="text-right">
+                    <p className="text-xs text-zinc-400 uppercase tracking-wider mb-1">Overall Band</p>
+                    <p className="text-2xl font-bold text-amber-400">{currentStats.overallBand > 0 ? currentStats.overallBand.toFixed(1) : '—'}</p>
+                </div>
+            </div>
+        </header>
+
+        {/* 1. Summary Cards Row */}
+        <div className="summary-grid">
+            <SummaryCard
+                title="Overall Band"
+                value={currentStats.overallBand > 0 ? currentStats.overallBand.toFixed(1) : "—"}
+                subtitle={currentStats.overallBand >= 6 ? "Good Level" : "Beginner"}
+                icon={StarIcon}
+                color="#f59e0b"
+            />
+            <SummaryCard
+                title="Completed Tasks"
+                value={currentStats.completedTasks.toString()}
+                subtitle={`Total: ${currentStats.totalTasks}`}
+                icon={AssignmentIcon}
+                color="#3b82f6"
+            />
+            <SummaryCard
+                title="Attendance"
+                value={`${currentStats.participation}%`}
+                subtitle="Participation rate"
+                icon={TimelineIcon}
+                color="#10b981"
+            />
+            <SummaryCard
+                title="Weakest Skill"
+                value={
+                    currentStats.skillBands.every(b => b === 0)
+                        ? "—"
+                        : SKILLS[currentStats.skillBands.indexOf(Math.min(...currentStats.skillBands.filter(b => b > 0)))]?.name || "None"
+                }
+                subtitle="Focus area"
+                icon={TrendingUpIcon}
+                color="#ef4444"
+            />
+        </div>
+
+        {/* 2. Charts Row */}
+        <div className="charts-grid mt-8 gap-6">
+            <div className="glass-panel p-8 h-[450px] flex flex-col border-purple-500/20 border-2 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500/50 to-transparent"></div>
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
+                        <AssessmentIcon sx={{ fontSize: 24, color: '#a78bfa' }} />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-xl text-white font-serif">Skill Breakdown</h3>
+                        <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Performance by skill area (Bar Chart)</p>
+                    </div>
+                </div>
+                <div className="flex-1 relative">
+                    <Bar data={barChartData} options={chartOptions} />
+                </div>
+            </div>
+
+            <div className="glass-panel p-8 h-[450px] flex flex-col border-amber-500/20 border-2 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500/50 to-transparent"></div>
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+                        <ShowChartIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-xl text-white font-serif">Progress Timeline</h3>
+                        <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Learning journey over time (Line Chart)</p>
+                    </div>
+                </div>
+                <div className="flex-1 relative">
+                    {currentStats.progressData.length > 1 ? (
+                        <Line data={lineChartData} options={chartOptions} />
+                    ) : (
+                        <div className="flex flex-col items-center justify-center h-full text-zinc-500">
+                            <ShowChartIcon sx={{ fontSize: 48, color: '#475569', mb: 2 }} />
+                            <p className="text-sm">Not enough data to show trend</p>
+                            <p className="text-xs text-zinc-600 mt-1">Complete more tasks to see your progress</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+
+        {/* 3. Pie Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+            {/* Skill Distribution Pie Chart */}
+            <div className="glass-panel p-8 border-emerald-500/20 border-2 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500/50 to-transparent"></div>
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                        <TrendingUpIcon sx={{ fontSize: 24, color: '#34d399' }} />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-xl text-white font-serif">Skills Distribution</h3>
+                        <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Tasks by skill type (Pie Chart)</p>
+                    </div>
+                </div>
+                <div className="h-64 flex items-center justify-center">
+                    <Pie
+                        data={{
+                            labels: SKILLS.map(s => s.name),
+                            datasets: [{
+                                label: 'Tasks by Skill',
+                                data: SKILLS.map(s => {
+                                    const dayMapping = {
+                                        'Listening': 'Monday',
+                                        'Reading': 'Tuesday',
+                                        'Writing': 'Wednesday',
+                                        'Speaking': 'Thursday',
+                                        'Vocabulary': 'Friday',
+                                        'Grammar': 'Friday'
+                                    };
+                                    const day = dayMapping[s.key];
+                                    const filtered = getTasksByPeriod(tasks, timePeriod);
+                                    return (filtered[day] || []).length;
+                                }),
+                                backgroundColor: SKILLS.map(s => s.color + 'CC'),
+                                borderColor: SKILLS.map(s => s.color),
+                                borderWidth: 2,
+                            }]
+                        }}
+                        options={{
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        color: '#a1a1aa',
+                                        font: { size: 11, family: 'Inter' },
+                                        padding: 12,
+                                    },
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(23, 23, 23, 0.95)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#a1a1aa',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                },
+                            },
+                        }}
+                    />
+                </div>
+            </div>
+
+            {/* Task Completion Doughnut Chart */}
+            <div className="glass-panel p-8 border-blue-500/20 border-2 relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500/50 to-transparent"></div>
+                <div className="flex items-center gap-4 mb-6">
+                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30">
+                        <AssignmentIcon sx={{ fontSize: 24, color: '#60a5fa' }} />
+                    </div>
+                    <div>
+                        <h3 className="font-semibold text-xl text-white font-serif">Task Completion</h3>
+                        <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Progress overview (Doughnut Chart)</p>
+                    </div>
+                </div>
+                <div className="h-64 flex items-center justify-center">
+                    <Doughnut
+                        data={{
+                            labels: ['Completed', 'Pending'],
+                            datasets: [{
+                                label: 'Tasks Status',
+                                data: [
+                                    currentStats.completedTasks,
+                                    Math.max(0, currentStats.totalTasks - currentStats.completedTasks)
+                                ],
+                                backgroundColor: [
+                                    'rgba(16, 185, 129, 0.8)',
+                                    'rgba(245, 158, 11, 0.8)',
+                                ],
+                                borderColor: [
+                                    'rgba(16, 185, 129, 1)',
+                                    'rgba(245, 158, 11, 1)',
+                                ],
+                                borderWidth: 2,
+                            }]
+                        }}
+                        options={{
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom',
+                                    labels: {
+                                        color: '#a1a1aa',
+                                        font: { size: 11, family: 'Inter' },
+                                        padding: 12,
+                                    },
+                                },
+                                tooltip: {
+                                    backgroundColor: 'rgba(23, 23, 23, 0.95)',
+                                    titleColor: '#fff',
+                                    bodyColor: '#a1a1aa',
+                                    borderColor: 'rgba(255, 255, 255, 0.1)',
+                                    borderWidth: 1,
+                                    padding: 12,
+                                    callbacks: {
+                                        label: (context) => {
+                                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                            const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                            return `${context.label}: ${context.parsed} (${percentage}%)`;
+                                        }
+                                    }
+                                },
+                            },
+                        }}
+                    />
+                </div>
+            </div>
+        </div>
+
+    </div>
+);
 };
 
 export default StatsDashboard;

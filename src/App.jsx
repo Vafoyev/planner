@@ -52,15 +52,11 @@ function App() {
   const handleLogin = (userData) => {
     setUser(userData);
     localStorage.setItem('ielts_auth_v2', JSON.stringify(userData));
-    // If student, auto-select themself
+    // If student, check if they are added to the class yet
     if (userData.role === 'student') {
-      // Ensure student exists in data
-      const studentExists = data.students.find(s => s.name === userData.name);
+      const studentExists = data.students.find(s => s.id == userData.id || s.username === userData.username);
       if (!studentExists) {
-        // Optional: Auto-create student record if not found (or handle error)
-        // For this demo, we'll auto-create to be friendly
-        const newStudent = { id: Date.now(), name: userData.name, scores: {} };
-        setData(prev => ({ ...prev, students: [...prev.students, newStudent] }));
+        // Do not auto-create. They see empty view until teacher adds them.
       }
     }
   };
@@ -77,11 +73,16 @@ function App() {
   }
 
   // Student Management
-  const handleAddStudent = (name) => {
+  const handleAddStudent = (userObj) => {
+    // Check duplication
+    if (data.students.some(s => s.id === userObj.id)) return;
+
     const newStudent = {
-      id: Date.now(),
-      name,
-      scores: {} // Store scores per task: { [taskId]: score }
+      id: userObj.id,
+      name: userObj.name,
+      username: userObj.username,
+      email: userObj.email,
+      scores: {}
     };
     setData(prev => ({
       ...prev,
@@ -155,6 +156,15 @@ function App() {
     }));
   };
 
+  const handleImportData = (importedData) => {
+    if (importedData && importedData.students && importedData.tasks) {
+      setData(importedData);
+      alert('Data imported successfully!');
+    } else {
+      alert('Invalid data format.');
+    }
+  };
+
   return (
     <Layout
       currentView={currentView}
@@ -175,10 +185,12 @@ function App() {
       ) : currentView === 'students' && userMode === 'teacher' ? (
         <StudentManager
           students={data.students}
+          fullData={data}
           onAddStudent={handleAddStudent}
           onDeleteStudent={handleDeleteStudent}
           selectedStudent={selectedStudent}
           setSelectedStudent={setSelectedStudent}
+          onImportData={handleImportData}
         />
       ) : currentView === 'schedule' ? (
         <ScheduleView
