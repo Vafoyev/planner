@@ -60,36 +60,36 @@ const SummaryCard = ({ title, value, subtitle, icon: Icon, color }) => (
     </div>
 );
 
+// Filter tasks by time period
+const getTasksByPeriod = (tasks, period) => {
+    const now = new Date();
+    let startDate;
+
+    if (period === 'weekly') {
+        startDate = startOfWeek(subWeeks(now, 0), { weekStartsOn: 1 });
+    } else if (period === 'monthly') {
+        startDate = startOfMonth(subMonths(now, 0));
+    } else {
+        return tasks; // overall - return all
+    }
+
+    const filtered = {};
+    Object.entries(tasks).forEach(([day, dayTasks]) => {
+        filtered[day] = dayTasks.filter(task => {
+            if (!task.date) return true;
+            const taskDate = parseISO(task.date);
+            return isWithinInterval(taskDate, { start: startDate, end: now });
+        });
+    });
+    return filtered;
+};
+
 const StatsDashboard = ({ students, selectedStudent, tasks = {} }) => {
     const [timePeriod, setTimePeriod] = useState('overall'); // 'weekly', 'monthly', 'overall'
 
-    // Filter tasks by time period
-    const getTasksByPeriod = (tasks, period) => {
-        const now = new Date();
-        let startDate;
-        
-        if (period === 'weekly') {
-            startDate = startOfWeek(subWeeks(now, 0), { weekStartsOn: 1 });
-        } else if (period === 'monthly') {
-            startDate = startOfMonth(subMonths(now, 0));
-        } else {
-            return tasks; // overall - return all
-        }
-        
-        const filtered = {};
-        Object.entries(tasks).forEach(([day, dayTasks]) => {
-            filtered[day] = dayTasks.filter(task => {
-                if (!task.date) return true;
-                const taskDate = parseISO(task.date);
-                return isWithinInterval(taskDate, { start: startDate, end: now });
-            });
-        });
-        return filtered;
-    };
-
-    const getStudentStats = (student) => {
+    const getStudentStats = React.useCallback((student) => {
         if (!student) return null;
-        
+
         const filteredTasks = getTasksByPeriod(tasks, timePeriod);
         let totalScore = 0;
         let totalMax = 0;
@@ -104,7 +104,7 @@ const StatsDashboard = ({ students, selectedStudent, tasks = {} }) => {
             const dayTasks = filteredTasks[day] || [];
             dayTasks.forEach((task, i) => {
                 totalTasks++;
-                
+
                 // Map day to skill
                 let skill = 'General';
                 if (day === 'Monday') skill = 'Listening';
@@ -201,13 +201,13 @@ const StatsDashboard = ({ students, selectedStudent, tasks = {} }) => {
             participation: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
             skillScores
         };
-    };
+    }, [tasks, timePeriod]);
 
     const currentStats = useMemo(() => {
         return selectedStudent
             ? getStudentStats(selectedStudent)
             : { overallBand: 0, skillBands: [0, 0, 0, 0, 0, 0], progressData: [], participation: 0, completedTasks: 0, totalTasks: 0, skillScores: {} };
-    }, [selectedStudent, tasks, timePeriod]);
+    }, [selectedStudent, getStudentStats]);
 
 
     // Chart Configs
@@ -306,36 +306,33 @@ const StatsDashboard = ({ students, selectedStudent, tasks = {} }) => {
                     <h2 className="text-2xl font-serif text-white mb-1">{selectedStudent.name}'s Statistics</h2>
                     <p className="text-sm text-zinc-400 font-sans">Performance analytics and insights</p>
                 </div>
-                
+
                 {/* Time Period Selector */}
                 <div className="flex items-center gap-2 bg-black/20 rounded-full p-1 border border-white/5 mr-4">
                     <button
                         onClick={() => setTimePeriod('weekly')}
-                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                            timePeriod === 'weekly'
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                : 'text-zinc-400 hover:text-white'
-                        }`}
+                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${timePeriod === 'weekly'
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'text-zinc-400 hover:text-white'
+                            }`}
                     >
                         Weekly
                     </button>
                     <button
                         onClick={() => setTimePeriod('monthly')}
-                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                            timePeriod === 'monthly'
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                : 'text-zinc-400 hover:text-white'
-                        }`}
+                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${timePeriod === 'monthly'
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'text-zinc-400 hover:text-white'
+                            }`}
                     >
                         Monthly
                     </button>
                     <button
                         onClick={() => setTimePeriod('overall')}
-                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
-                            timePeriod === 'overall'
-                                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                : 'text-zinc-400 hover:text-white'
-                        }`}
+                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${timePeriod === 'overall'
+                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+                            : 'text-zinc-400 hover:text-white'
+                            }`}
                     >
                         Overall
                     </button>
@@ -444,7 +441,7 @@ const StatsDashboard = ({ students, selectedStudent, tasks = {} }) => {
                         </div>
                     </div>
                     <div className="h-64 flex items-center justify-center">
-                        <Pie 
+                        <Pie
                             data={{
                                 labels: SKILLS.map(s => s.name),
                                 datasets: [{

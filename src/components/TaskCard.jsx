@@ -47,7 +47,7 @@ const TaskCard = ({
     };
 
     const colorClass = getColorClass(percentage);
-    const deadlineColor = task.deadline ? '#94a3b8' : 'transparent';
+
 
     return (
         <div className={`task-card glass-card ${colorClass} group`}>
