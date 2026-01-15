@@ -8,6 +8,7 @@ import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import GroupIcon from '@mui/icons-material/Group';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 
 const Layout = ({
   currentView,
@@ -31,24 +32,32 @@ const Layout = ({
           {/* Logo */}
           <div className="logo-section p-6 border-b border-white/5 relative z-10">
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/20 text-white">
-                <EmojiEventsIcon sx={{ fontSize: 24 }} />
+              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 text-white">
+                <EmojiEventsIcon sx={{ fontSize: 28 }} />
               </div>
-              <h1 className="text-xl font-serif font-bold text-white tracking-tight">Exclusive<br /><span className="text-amber-400">Academy</span></h1>
+              <h1 className="text-xl font-serif font-bold text-white tracking-tight">English Study<br /><span className="text-amber-400">Academy</span></h1>
             </div>
-            <p className="text-xs text-zinc-400 uppercase tracking-widest pl-1">Premium IELTS Planner</p>
+            <p className="text-xs text-zinc-400 uppercase tracking-widest pl-1">IELTS Learning Platform</p>
           </div>
 
-          {/* Navigation */}
+            {/* Navigation */}
           <nav className="nav-menu flex-1 p-4 space-y-2 overflow-y-auto">
-            <p className="px-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 mt-4">Main Menu</p>
+            <p className="px-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 mt-4">Main Menu</p>
+
+            <button
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${currentView === 'dashboard' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-900/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+              onClick={() => setCurrentView('dashboard')}
+            >
+              <DashboardIcon sx={{ fontSize: 20 }} className={currentView === 'dashboard' ? 'text-amber-400' : 'text-zinc-500 group-hover:text-white'} />
+              <span className="font-medium">Dashboard</span>
+            </button>
 
             <button
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${currentView === 'schedule' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-900/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
               onClick={() => setCurrentView('schedule')}
             >
               <CalendarTodayIcon sx={{ fontSize: 20 }} className={currentView === 'schedule' ? 'text-amber-400' : 'text-zinc-500 group-hover:text-white'} />
-              <span className="font-medium">Weekly Schedule</span>
+              <span className="font-medium">Weekly Plan</span>
             </button>
 
             {userMode === 'teacher' && (
@@ -63,11 +72,11 @@ const Layout = ({
             )}
 
             <button
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${currentView === 'dashboard' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-900/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
-              onClick={() => setCurrentView('dashboard')}
+              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${currentView === 'statistics' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-900/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+              onClick={() => setCurrentView('statistics')}
             >
-              <DashboardIcon sx={{ fontSize: 20 }} className={currentView === 'dashboard' ? 'text-amber-400' : 'text-zinc-500 group-hover:text-white'} />
-              <span className="font-medium">Analytics</span>
+              <TrendingUpIcon sx={{ fontSize: 20 }} className={currentView === 'statistics' ? 'text-amber-400' : 'text-zinc-500 group-hover:text-white'} />
+              <span className="font-medium">Statistics</span>
             </button>
 
             {/* Student Selector for Teacher */}
@@ -75,7 +84,7 @@ const Layout = ({
               <div className="mt-8 p-4 rounded-xl bg-black/20 border border-white/5">
                 <p className="flex items-center gap-2 text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">
                   <PersonIcon sx={{ fontSize: 14 }} />
-                  Grading Mode
+                  Student Selection
                 </p>
                 <select
                   value={selectedStudent?.id || ''}

@@ -22,6 +22,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
 import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 

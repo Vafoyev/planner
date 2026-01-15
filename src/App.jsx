@@ -3,7 +3,7 @@ import Layout from './components/Layout';
 import ScheduleView from './components/ScheduleView';
 import StatsDashboard from './components/StatsDashboard';
 import StudentManager from './components/StudentManager';
-
+import DashboardHome from './components/DashboardHome';
 import Login from './components/Login';
 
 // Initial empty state
@@ -42,7 +42,7 @@ function App() {
 
   // Derived state for compatibility with existing components
   const userMode = user?.role || 'student'; // Default safe fallback
-  const [currentView, setCurrentView] = useState('schedule');
+  const [currentView, setCurrentView] = useState('dashboard');
   const [selectedStudent, setSelectedStudent] = useState(null);
 
   useEffect(() => {
@@ -166,7 +166,13 @@ function App() {
       setSelectedStudent={setSelectedStudent}
       onLogout={handleLogout}
     >
-      {currentView === 'students' && userMode === 'teacher' ? (
+      {currentView === 'dashboard' ? (
+        <DashboardHome
+          userMode={userMode}
+          students={data.students}
+          tasks={data.tasks}
+        />
+      ) : currentView === 'students' && userMode === 'teacher' ? (
         <StudentManager
           students={data.students}
           onAddStudent={handleAddStudent}
@@ -185,13 +191,13 @@ function App() {
           onUpdateScore={handleUpdateScore}
           userMode={userMode}
         />
-      ) : (
+      ) : currentView === 'statistics' ? (
         <StatsDashboard
           tasks={data.tasks}
           students={data.students}
           selectedStudent={selectedStudent}
         />
-      )}
+      ) : null}
     </Layout>
   );
 }
