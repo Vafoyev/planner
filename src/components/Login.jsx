@@ -2,115 +2,75 @@ import React, { useState } from 'react';
 import LockIcon from '@mui/icons-material/Lock';
 import PersonIcon from '@mui/icons-material/Person';
 import LoginIcon from '@mui/icons-material/Login';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import SchoolIcon from '@mui/icons-material/School';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import EmailIcon from '@mui/icons-material/Email';
+import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import { authenticateUser, authenticateSuperAdmin, getUsers } from '../data';
+import { useTheme } from '../context/ThemeContext';
 
-const Login = ({ onLogin }) => {
-    const [role, setRole] = useState('teacher');
-    const [isRegister, setIsRegister] = useState(false);
+const Login = ({ onLogin, onAdminLogin }) => {
+    const { theme, toggleTheme } = useTheme();
+    const [role, setRole] = useState('student');
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const [email, setEmail] = useState('');
-    const [studentName, setStudentName] = useState('');
-    const [studentEmail, setStudentEmail] = useState('');
-    const [studentPassword, setStudentPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [showAdminAccess, setShowAdminAccess] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
 
-        await new Promise(resolve => setTimeout(resolve, 800));
+        await new Promise(resolve => setTimeout(resolve, 600));
 
-        // Unified User Database
-        const users = JSON.parse(localStorage.getItem('ielts_users') || '[]');
-
-        if (role === 'teacher') {
-            if (isRegister) {
-                if (username.trim().length >= 3 && password.length >= 5 && email.includes('@')) {
-                    const existing = users.find(u => u.username === username || u.email === email);
-                    if (existing) {
-                        setError('User with this username or email already exists.');
-                        setIsLoading(false);
-                        return;
-                    }
-
-                    const newTeacher = {
-                        id: Date.now(),
-                        role: 'teacher',
-                        username: username.trim(),
-                        email: email.trim(),
-                        name: username.trim(), // Use username as display name for now
-                        password: password
-                    };
-                    users.push(newTeacher);
-                    localStorage.setItem('ielts_users', JSON.stringify(users));
-                    onLogin(newTeacher);
-                } else {
-                    setError('Please fill all fields correctly (username: 3+ chars, password: 5+ chars, valid email)');
-                    setIsLoading(false);
-                }
+        // Check for super admin access
+        if (showAdminAccess) {
+            const admin = authenticateSuperAdmin(username, password);
+            if (admin) {
+                onAdminLogin(admin);
             } else {
-                const teacher = users.find(u =>
-                    u.role === 'teacher' &&
-                    (u.username === username || u.email === username) &&
-                    u.password === password
-                );
-
-                if (teacher) {
-                    onLogin(teacher);
-                } else if (username === 'admin' && password === '12345') {
-                    onLogin({ role: 'teacher', name: 'Administrator', id: 1 });
-                } else {
-                    setError('Invalid credentials.');
-                    setIsLoading(false);
-                }
+                setError('Invalid admin credentials.');
             }
+            setIsLoading(false);
+            return;
+        }
+
+        // Regular user login
+        const user = authenticateUser(username, password, role);
+        if (user) {
+            onLogin(user);
         } else {
-            // Student Logic
-            if (isRegister) {
-                if (studentName.trim().length >= 2 && studentEmail.includes('@') && studentPassword.length >= 4) {
-                    const existing = users.find(u => u.username === studentName || u.email === studentEmail);
-                    if (existing) {
-                        setError('Student with this name or email already exists.');
-                        setIsLoading(false);
-                        return;
-                    }
-
-                    const newStudent = {
-                        id: Date.now(),
-                        role: 'student',
-                        name: studentName.trim(), // Display name
-                        username: studentName.trim(), // Treat name as username key for simplicity
-                        email: studentEmail.trim(),
-                        password: studentPassword
-                    };
-                    users.push(newStudent);
-                    localStorage.setItem('ielts_users', JSON.stringify(users));
-                    onLogin(newStudent);
-                } else {
-                    setError('Please enter valid details and a password (min 4 chars).');
-                    setIsLoading(false);
-                }
+            // Check if any users exist for this role
+            const users = getUsers().filter(u => u.role === role);
+            if (users.length === 0) {
+                setError(`No ${role}s registered yet. Contact administrator.`);
             } else {
-                const student = users.find(u =>
-                    u.role === 'student' &&
-                    (u.username === studentName.trim() || u.email === studentName.trim()) &&
-                    u.password === studentPassword
-                );
-
-                if (student) {
-                    onLogin(student);
-                } else {
-                    setError('Invalid credentials.');
-                    setIsLoading(false);
-                }
+                setError('Invalid username or password.');
             }
+        }
+        setIsLoading(false);
+    };
+
+    const getRoleIcon = () => {
+        if (showAdminAccess) return <AdminPanelSettingsIcon sx={{ fontSize: 48, color: '#fff' }} />;
+        switch (role) {
+            case 'headteacher': return <SupervisorAccountIcon sx={{ fontSize: 48, color: '#fff' }} />;
+            case 'teacher': return <SchoolIcon sx={{ fontSize: 48, color: '#fff' }} />;
+            default: return <MenuBookIcon sx={{ fontSize: 48, color: '#fff' }} />;
+        }
+    };
+
+    const getRoleGradient = () => {
+        if (showAdminAccess) return 'from-red-500 to-pink-600';
+        switch (role) {
+            case 'headteacher': return 'from-purple-500 to-violet-600';
+            case 'teacher': return 'from-blue-500 to-cyan-600';
+            default: return 'from-emerald-500 to-teal-600';
         }
     };
 
@@ -121,132 +81,65 @@ const Login = ({ onLogin }) => {
             <div className="glass-orb orb-2"></div>
             <div className="glass-orb orb-3"></div>
 
+            {/* Theme Toggle */}
+            <button
+                onClick={toggleTheme}
+                className="fixed top-6 right-6 p-3 rounded-xl bg-white/10 backdrop-blur-xl hover:bg-white/20 text-white transition-all z-50"
+            >
+                {theme === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+            </button>
+
             <div className="login-content">
                 <div className="login-card glass-panel fade-in-up">
                     <div className="login-header">
-                        <div className="login-logo shake-on-hover">
-                            <EmojiEventsIcon sx={{ fontSize: 48, color: '#fff' }} />
+                        <div className={`login-logo shake-on-hover bg-gradient-to-br ${getRoleGradient()}`}>
+                            {getRoleIcon()}
                         </div>
-                        <h1>English Study Academy</h1>
-                        <p>IELTS & English Learning Platform</p>
+                        <h1>{showAdminAccess ? 'Admin Access' : 'English Study Academy'}</h1>
+                        <p>{showAdminAccess ? 'Super Administrator Login' : 'IELTS & English Learning Platform'}</p>
                     </div>
 
-                    {/* Role Toggles */}
-                    <div className="role-selector">
-                        <button
-                            type="button"
-                            className={`role-btn ${role === 'teacher' ? 'active' : ''}`}
-                            onClick={() => { setRole('teacher'); setError(''); setIsRegister(false); }}
-                        >
-                            <SchoolIcon fontSize="small" /> Teacher
-                        </button>
-                        <button
-                            type="button"
-                            className={`role-btn ${role === 'student' ? 'active' : ''}`}
-                            onClick={() => { setRole('student'); setError(''); setIsRegister(false); }}
-                        >
-                            <MenuBookIcon fontSize="small" /> Student
-                        </button>
-                    </div>
-
-                    {/* Login/Register Toggle */}
-                    <div className="auth-mode-selector">
-                        <button
-                            type="button"
-                            className={`auth-mode-btn ${!isRegister ? 'active' : ''}`}
-                            onClick={() => { setIsRegister(false); setError(''); }}
-                        >
-                            <LoginIcon fontSize="small" /> Sign In
-                        </button>
-                        <button
-                            type="button"
-                            className={`auth-mode-btn ${isRegister ? 'active' : ''}`}
-                            onClick={() => { setIsRegister(true); setError(''); }}
-                        >
-                            <PersonAddIcon fontSize="small" /> Register
-                        </button>
-                    </div>
+                    {!showAdminAccess && (
+                        <div className="role-selector">
+                            <button
+                                type="button"
+                                className={`role-btn ${role === 'headteacher' ? 'active' : ''}`}
+                                onClick={() => { setRole('headteacher'); setError(''); }}
+                            >
+                                <SupervisorAccountIcon fontSize="small" /> Head Teacher
+                            </button>
+                            <button
+                                type="button"
+                                className={`role-btn ${role === 'teacher' ? 'active' : ''}`}
+                                onClick={() => { setRole('teacher'); setError(''); }}
+                            >
+                                <SchoolIcon fontSize="small" /> Teacher
+                            </button>
+                            <button
+                                type="button"
+                                className={`role-btn ${role === 'student' ? 'active' : ''}`}
+                                onClick={() => { setRole('student'); setError(''); }}
+                            >
+                                <MenuBookIcon fontSize="small" /> Student
+                            </button>
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="login-form">
-                        {role === 'teacher' ? (
-                            <>
-                                <div className="input-group slide-in">
-                                    <div className="input-icon">
-                                        <PersonIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        placeholder={isRegister ? "Choose a username" : "Username or Email"}
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        className="glass-input"
-                                        autoFocus
-                                        required
-                                    />
-                                </div>
-                                {isRegister && (
-                                    <div className="input-group slide-in" style={{ animationDelay: '0.05s' }}>
-                                        <div className="input-icon">
-                                            <EmailIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                                        </div>
-                                        <input
-                                            type="email"
-                                            placeholder="Email address"
-                                            value={email}
-                                            onChange={(e) => setEmail(e.target.value)}
-                                            className="glass-input"
-                                            required
-                                        />
-                                    </div>
-                                )}
-                                <div className="input-group slide-in" style={{ animationDelay: isRegister ? '0.1s' : '0.1s' }}>
-                                    <div className="input-icon">
-                                        <LockIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                                    </div>
-                                    <input
-                                        type="password"
-                                        placeholder={isRegister ? "Create password (min. 5 characters)" : "Password"}
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="glass-input"
-                                        required
-                                        minLength={isRegister ? 5 : 1}
-                                    />
-                                </div>
-                            </>
-                        ) : (
-                            <>
-                                <div className="input-group slide-in">
-                                    <div className="input-icon">
-                                        <PersonIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        placeholder={isRegister ? "Your full name" : "Name or Email"}
-                                        value={studentName}
-                                        onChange={(e) => setStudentName(e.target.value)}
-                                        className="glass-input"
-                                        autoFocus
-                                        required
-                                    />
-                                </div>
-                                {isRegister && (
-                                    <div className="input-group slide-in" style={{ animationDelay: '0.1s' }}>
-                                        <div className="input-icon">
-                                            <EmailIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
-                                        </div>
-                                        <input
-                                            type="email"
-                                            placeholder="Email address"
-                                            value={studentEmail}
-                                            onChange={(e) => setStudentEmail(e.target.value)}
-                                            className="glass-input"
-                                            required
-                                        />
-                                    </div>
-                                )}
+                        <div className="input-group slide-in">
+                            <div className="input-icon">
+                                <PersonIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
                             </div>
-                                )}
+                            <input
+                                type="text"
+                                placeholder="Username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                className="glass-input"
+                                autoFocus
+                                required
+                            />
+                        </div>
                         <div className="input-group slide-in" style={{ animationDelay: '0.1s' }}>
                             <div className="input-icon">
                                 <LockIcon sx={{ color: 'rgba(255,255,255,0.7)' }} />
@@ -254,54 +147,57 @@ const Login = ({ onLogin }) => {
                             <input
                                 type="password"
                                 placeholder="Password"
-                                value={studentPassword}
-                                onChange={(e) => setStudentPassword(e.target.value)}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                                 className="glass-input"
                                 required
-                                minLength={4}
                             />
                         </div>
-                    </>
-                        )}
 
-                    {error && <div className="login-error scale-in">{error}</div>}
+                        {error && <div className="login-error scale-in">{error}</div>}
 
-                    <button
-                        type="submit"
-                        className={`glass-btn-primary ${isLoading ? 'loading' : ''}`}
-                        disabled={isLoading}
-                    >
-                        {isLoading ? (
-                            <span className="loader"></span>
+                        <button
+                            type="submit"
+                            className={`glass-btn-primary ${isLoading ? 'loading' : ''}`}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <span className="loader"></span>
+                            ) : (
+                                <>
+                                    <LoginIcon sx={{ fontSize: 20 }} />
+                                    <span>{showAdminAccess ? 'Access Admin Panel' : 'Sign In'}</span>
+                                </>
+                            )}
+                        </button>
+                    </form>
+
+                    <div className="login-footer">
+                        {showAdminAccess ? (
+                            <button
+                                onClick={() => { setShowAdminAccess(false); setError(''); setUsername(''); setPassword(''); }}
+                                className="text-zinc-500 hover:text-amber-400 text-sm underline"
+                            >
+                                ← Back to User Login
+                            </button>
                         ) : (
                             <>
-                                {isRegister ? (
-                                    <PersonAddIcon sx={{ fontSize: 20 }} />
-                                ) : (
-                                    <LoginIcon sx={{ fontSize: 20 }} />
-                                )}
-                                <span>
-                                    {isRegister
-                                        ? (role === 'teacher' ? 'Create Account' : 'Join as Student')
-                                        : (role === 'teacher' ? 'Sign In to Dashboard' : 'View My Schedule')
-                                    }
-                                </span>
+                                <p className="text-zinc-500 text-sm">
+                                    Contact your administrator for login credentials
+                                </p>
+                                <button
+                                    onClick={() => { setShowAdminAccess(true); setError(''); setUsername(''); setPassword(''); }}
+                                    className="mt-4 text-zinc-600 hover:text-red-400 text-xs flex items-center gap-1 mx-auto transition-colors"
+                                >
+                                    <AdminPanelSettingsIcon sx={{ fontSize: 14 }} />
+                                    Admin Access
+                                </button>
                             </>
                         )}
-                    </button>
-                </form>
-
-                <div className="login-footer">
-                    <p>
-                        {isRegister
-                            ? (role === 'teacher' ? 'Create your teaching account' : 'Start your learning journey')
-                            : (role === 'teacher' ? 'Secured Administrative Access' : 'Student Portal Entry')
-                        }
-                    </p>
+                    </div>
                 </div>
             </div>
         </div>
-        </div >
     );
 };
 

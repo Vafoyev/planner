@@ -1,283 +1,293 @@
-import React, { useMemo } from 'react';
-import { format, startOfWeek, startOfMonth, startOfYear, isWithinInterval } from 'date-fns';
+import React from 'react';
 import DashboardIcon from '@mui/icons-material/Dashboard';
-import SchoolIcon from '@mui/icons-material/School';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
+import GroupIcon from '@mui/icons-material/Group';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import PeopleIcon from '@mui/icons-material/People';
-import StarIcon from '@mui/icons-material/Star';
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { Pie, Doughnut } from 'react-chartjs-2';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import SchoolIcon from '@mui/icons-material/School';
+import PersonIcon from '@mui/icons-material/Person';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PendingIcon from '@mui/icons-material/Pending';
 
-ChartJS.register(ArcElement, Tooltip, Legend);
+const DashboardHome = ({ userMode, user, students = [], tasks = {}, groups = [] }) => {
+  // Calculate stats
+  const totalTasks = Object.values(tasks).flat().length;
+  const todayName = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+  const todayTasks = tasks[todayName] || [];
 
-const DashboardHome = ({ userMode, students = [], tasks = {} }) => {
-  // Calculate Statistics
-  const stats = useMemo(() => {
-    const allTasks = Object.values(tasks).flat();
-    const completedTasks = students.reduce((total, student) => {
-      return total + Object.keys(student.scores || {}).length;
-    }, 0);
-    
-    // Calculate overall scores
-    let totalScore = 0;
-    let totalMax = 0;
-    students.forEach(student => {
-      Object.entries(student.scores || {}).forEach(([taskId, score]) => {
-        const task = allTasks.find(t => t.id === Number(taskId));
-        if (task) {
-          totalScore += score;
-          totalMax += (task.maxScore || 40);
-        }
+  // Get greeting based on time
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
+  // For students - get their assigned tasks
+  const getStudentStats = () => {
+    if (user?.role !== 'student') return null;
+
+    let totalAssigned = 0;
+    let completed = 0;
+
+    Object.values(tasks).forEach(dayTasks => {
+      dayTasks.forEach(task => {
+        totalAssigned++;
+        // Check if scored (simplified)
       });
     });
-    
-    const averageScore = totalMax > 0 ? ((totalScore / totalMax) * 100).toFixed(1) : 0;
-    
-    // Weekly stats
-    const now = new Date();
-    const weekStart = startOfWeek(now, { weekStartsOn: 1 });
-    const weekTasks = Object.entries(tasks).reduce((acc, [day, dayTasks]) => {
-      return acc + dayTasks.length;
-    }, 0);
-    
-    // Monthly stats
-    const monthStart = startOfMonth(now);
-    
-    return {
-      totalStudents: students.length,
-      totalTasks: allTasks.length,
-      completedTasks,
-      averageScore,
-      weekTasks,
-      pendingTasks: allTasks.length - completedTasks
-    };
-  }, [students, tasks]);
 
-  // Pie Chart Data for Tasks Distribution
-  const taskDistributionData = {
-    labels: ['Completed', 'Pending'],
-    datasets: [{
-      label: 'Tasks Status',
-      data: [stats.completedTasks, stats.pendingTasks],
-      backgroundColor: [
-        'rgba(16, 185, 129, 0.8)',
-        'rgba(245, 158, 11, 0.8)',
-      ],
-      borderColor: [
-        'rgba(16, 185, 129, 1)',
-        'rgba(245, 158, 11, 1)',
-      ],
-      borderWidth: 2,
-    }],
+    return { totalAssigned, completed };
   };
 
-  // Skill Distribution Pie Chart
-  const skillDistributionData = {
-    labels: ['Listening', 'Reading', 'Writing', 'Speaking', 'Mock Test'],
-    datasets: [{
-      label: 'Tasks by Skill',
-      data: [
-        tasks.Monday?.length || 0,
-        tasks.Tuesday?.length || 0,
-        tasks.Wednesday?.length || 0,
-        tasks.Thursday?.length || 0,
-        tasks.Friday?.length || 0,
-      ],
-      backgroundColor: [
-        'rgba(139, 92, 246, 0.8)',
-        'rgba(59, 130, 246, 0.8)',
-        'rgba(16, 185, 129, 0.8)',
-        'rgba(245, 158, 11, 0.8)',
-        'rgba(236, 72, 153, 0.8)',
-      ],
-      borderColor: [
-        'rgba(139, 92, 246, 1)',
-        'rgba(59, 130, 246, 1)',
-        'rgba(16, 185, 129, 1)',
-        'rgba(245, 158, 11, 1)',
-        'rgba(236, 72, 153, 1)',
-      ],
-      borderWidth: 2,
-    }],
-  };
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: true,
-    plugins: {
-      legend: {
-        position: 'bottom',
-        labels: {
-          color: '#a1a1aa',
-          font: {
-            size: 12,
-            family: 'Inter, sans-serif'
-          },
-          padding: 15,
-        },
-      },
-      tooltip: {
-        backgroundColor: 'rgba(23, 23, 23, 0.95)',
-        titleColor: '#fff',
-        bodyColor: '#a1a1aa',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderWidth: 1,
-        padding: 12,
-        displayColors: true,
-      },
-    },
-  };
+  const studentStats = getStudentStats();
 
   return (
     <div className="dashboard-home">
       {/* Welcome Header */}
-      <header className="page-glass-header mb-8">
-        <div className="header-icon-glass">
-          <DashboardIcon sx={{ fontSize: 28, color: '#f59e0b' }} />
-        </div>
-        <div className="flex-1">
-          <h2 className="text-3xl font-serif text-white mb-2">
-            Welcome {userMode === 'teacher' ? 'Teacher' : 'Student'}!
-          </h2>
-          <p className="text-sm text-zinc-400 font-sans">
-            {format(new Date(), 'EEEE, MMMM d, yyyy')} • Here's your overview
-          </p>
-        </div>
-        <div className="flex items-center gap-3 bg-gradient-to-r from-amber-500/10 to-orange-500/10 px-6 py-3 rounded-xl border border-amber-500/30">
-          <StarIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
+      <header className="glass-panel p-6 md:p-8 mb-6 md:mb-8 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500"></div>
+        <div className="flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-6">
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-amber-500/30 flex-shrink-0">
+            {userMode === 'teacher' ? (
+              <SchoolIcon sx={{ fontSize: 32 }} className="md:!text-[40px] text-white" />
+            ) : (
+              <PersonIcon sx={{ fontSize: 32 }} className="md:!text-[40px] text-white" />
+            )}
+          </div>
           <div>
-            <p className="text-xs text-zinc-400 uppercase tracking-wider">Average Score</p>
-            <p className="text-2xl font-bold text-amber-400">{stats.averageScore}%</p>
+            <p className="text-zinc-400 text-xs md:text-sm uppercase tracking-wider mb-1">{getGreeting()}</p>
+            <h1 className="text-2xl md:text-3xl font-serif font-bold text-white mb-1">
+              {user?.name || 'User'}
+            </h1>
+            <p className="text-zinc-400 text-sm md:text-base">
+              {user?.role === 'headteacher' && 'Head Teacher • Full Access'}
+              {user?.role === 'teacher' && 'Teacher • Group Management'}
+              {user?.role === 'student' && 'Student • Learning Mode'}
+            </p>
           </div>
         </div>
       </header>
 
-      {/* Quick Stats Cards */}
-      <div className="summary-grid mb-8">
-        <div className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer group">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30 group-hover:scale-110 transition-transform">
-              <PeopleIcon sx={{ fontSize: 28, color: '#a78bfa' }} />
-            </div>
-            <div>
-              <p className="text-sm text-zinc-400 uppercase tracking-wider mb-1">Total Students</p>
-              <p className="text-3xl font-bold text-white">{stats.totalStudents}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer group">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center border border-blue-500/30 group-hover:scale-110 transition-transform">
-              <AssignmentIcon sx={{ fontSize: 28, color: '#60a5fa' }} />
-            </div>
-            <div>
-              <p className="text-sm text-zinc-400 uppercase tracking-wider mb-1">Total Tasks</p>
-              <p className="text-3xl font-bold text-white">{stats.totalTasks}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer group">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 group-hover:scale-110 transition-transform">
-              <TrendingUpIcon sx={{ fontSize: 28, color: '#34d399' }} />
-            </div>
-            <div>
-              <p className="text-sm text-zinc-400 uppercase tracking-wider mb-1">Completed</p>
-              <p className="text-3xl font-bold text-white">{stats.completedTasks}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="glass-panel p-6 hover:scale-105 transition-transform cursor-pointer group">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30 group-hover:scale-110 transition-transform">
-              <CalendarTodayIcon sx={{ fontSize: 28, color: '#fbbf24' }} />
-            </div>
-            <div>
-              <p className="text-sm text-zinc-400 uppercase tracking-wider mb-1">This Week</p>
-              <p className="text-3xl font-bold text-white">{stats.weekTasks}</p>
-            </div>
-          </div>
-        </div>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 md:mb-8">
+        {userMode === 'teacher' ? (
+          <>
+            <StatCard
+              title="Total Students"
+              value={students.length}
+              subtitle="In your groups"
+              icon={GroupIcon}
+              color="#8b5cf6"
+            />
+            <StatCard
+              title="Active Groups"
+              value={groups.length}
+              subtitle="Managed by you"
+              icon={SchoolIcon}
+              color="#3b82f6"
+            />
+            <StatCard
+              title="Total Tasks"
+              value={totalTasks}
+              subtitle="Created this period"
+              icon={AssignmentIcon}
+              color="#f59e0b"
+            />
+            <StatCard
+              title="Today's Tasks"
+              value={todayTasks.length}
+              subtitle={todayName}
+              icon={CalendarTodayIcon}
+              color="#10b981"
+            />
+          </>
+        ) : (
+          <>
+            <StatCard
+              title="Assigned Tasks"
+              value={totalTasks}
+              subtitle="Total tasks"
+              icon={AssignmentIcon}
+              color="#f59e0b"
+            />
+            <StatCard
+              title="Today's Tasks"
+              value={todayTasks.length}
+              subtitle={todayName}
+              icon={CalendarTodayIcon}
+              color="#3b82f6"
+            />
+            <StatCard
+              title="My Groups"
+              value={groups.filter(g => g.studentIds?.includes(user?.id)).length}
+              subtitle="Enrolled in"
+              icon={GroupIcon}
+              color="#8b5cf6"
+            />
+            <StatCard
+              title="My Teacher"
+              value={groups.find(g => g.studentIds?.includes(user?.id))?.teacherId ? '1' : '0'}
+              subtitle="Assigned"
+              icon={SchoolIcon}
+              color="#10b981"
+            />
+          </>
+        )}
       </div>
 
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        {/* Task Status Pie Chart */}
-        <div className="glass-panel p-8 border-purple-500/20 border-2">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center border border-purple-500/30">
-              <EmojiEventsIcon sx={{ fontSize: 24, color: '#a78bfa' }} />
+      {/* Today's Tasks Preview */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
+        <div className="glass-panel p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+              <CalendarTodayIcon sx={{ fontSize: 20, color: '#f59e0b' }} />
             </div>
             <div>
-              <h3 className="font-semibold text-xl text-white font-serif">Task Completion</h3>
-              <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Overall progress</p>
+              <h3 className="text-lg font-semibold text-white">Today's Schedule</h3>
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">{todayName}</p>
             </div>
           </div>
-          <div className="h-64 flex items-center justify-center">
-            <Doughnut data={taskDistributionData} options={chartOptions} />
-          </div>
-        </div>
 
-        {/* Skill Distribution Pie Chart */}
-        <div className="glass-panel p-8 border-amber-500/20 border-2">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
-              <MenuBookIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
+          {todayTasks.length === 0 ? (
+            <div className="text-center py-8">
+              <CheckCircleIcon sx={{ fontSize: 48, color: '#10b981', opacity: 0.5, mb: 2 }} />
+              <p className="text-zinc-400">No tasks scheduled for today</p>
             </div>
-            <div>
-              <h3 className="font-semibold text-xl text-white font-serif">Skills Distribution</h3>
-              <p className="text-xs text-zinc-400 uppercase tracking-wider mt-1">Tasks by skill type</p>
-            </div>
-          </div>
-          <div className="h-64 flex items-center justify-center">
-            <Pie data={skillDistributionData} options={chartOptions} />
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions for Teacher */}
-      {userMode === 'teacher' && students.length > 0 && (
-        <div className="glass-panel p-8">
-          <h3 className="text-xl font-serif text-white mb-6 flex items-center gap-3">
-            <SchoolIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
-            Recent Students
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {students.slice(0, 6).map((student) => {
-              const studentScores = Object.values(student.scores || {});
-              const avgScore = studentScores.length > 0
-                ? (studentScores.reduce((a, b) => a + b, 0) / studentScores.length).toFixed(1)
-                : 0;
-              
-              return (
-                <div key={student.id} className="bg-black/20 p-4 rounded-xl border border-white/5 hover:border-amber-500/30 transition-all cursor-pointer group">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white font-bold">
-                      {student.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-white font-semibold truncate">{student.name}</h4>
-                      <p className="text-xs text-zinc-400">{studentScores.length} tasks completed</p>
-                    </div>
+          ) : (
+            <div className="space-y-3">
+              {todayTasks.slice(0, 4).map((task, index) => (
+                <div
+                  key={task.id}
+                  className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                    {index + 1}
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-zinc-500 uppercase">Avg Score</span>
-                    <span className="text-lg font-bold text-amber-400">{avgScore}%</span>
+                  <div className="flex-1">
+                    <p className="text-white font-medium">{task.title}</p>
+                    <div className="flex items-center gap-3 mt-1">
+                      <span className="text-xs text-zinc-500 flex items-center gap-1">
+                        <AccessTimeIcon sx={{ fontSize: 12 }} />
+                        {task.deadline || 'No deadline'}
+                      </span>
+                      <span className="text-xs text-amber-500">
+                        {task.maxScore} points
+                      </span>
+                    </div>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+              {todayTasks.length > 4 && (
+                <p className="text-center text-zinc-500 text-sm">
+                  +{todayTasks.length - 4} more tasks
+                </p>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Quick Actions / Recent Activity */}
+        <div className="glass-panel p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+              <TrendingUpIcon sx={{ fontSize: 20, color: '#10b981' }} />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-white">Quick Actions</h3>
+              <p className="text-xs text-zinc-500 uppercase tracking-wider">Get started</p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {userMode === 'teacher' ? (
+              <>
+                <ActionButton
+                  icon={GroupIcon}
+                  title="Manage Groups"
+                  description="Create and organize study groups"
+                  color="purple"
+                />
+                <ActionButton
+                  icon={AssignmentIcon}
+                  title="Create Task"
+                  description="Add new assignments for students"
+                  color="amber"
+                />
+                <ActionButton
+                  icon={TrendingUpIcon}
+                  title="View Statistics"
+                  description="Analyze student performance"
+                  color="emerald"
+                />
+              </>
+            ) : (
+              <>
+                <ActionButton
+                  icon={AssignmentIcon}
+                  title="View My Tasks"
+                  description="Check your assigned work"
+                  color="amber"
+                />
+                <ActionButton
+                  icon={TrendingUpIcon}
+                  title="My Progress"
+                  description="See your learning statistics"
+                  color="emerald"
+                />
+                <ActionButton
+                  icon={CalendarTodayIcon}
+                  title="Weekly Schedule"
+                  description="Plan your study time"
+                  color="blue"
+                />
+              </>
+            )}
           </div>
         </div>
-      )}
+      </div>
     </div>
+  );
+};
+
+// Stat Card Component
+const StatCard = ({ title, value, subtitle, icon: Icon, color }) => (
+  <div className="glass-panel p-6 flex items-center gap-4 hover:border-white/20 transition-colors">
+    <div
+      className="w-14 h-14 rounded-xl flex items-center justify-center"
+      style={{ backgroundColor: `${color}20` }}
+    >
+      <Icon sx={{ fontSize: 28, color }} />
+    </div>
+    <div>
+      <p className="text-3xl font-bold text-white">{value}</p>
+      <p className="text-xs text-zinc-500 uppercase tracking-wider">{title}</p>
+      {subtitle && <p className="text-xs text-zinc-600 mt-0.5">{subtitle}</p>}
+    </div>
+  </div>
+);
+
+// Action Button Component
+const ActionButton = ({ icon: Icon, title, description, color }) => {
+  const colors = {
+    purple: 'from-purple-500 to-violet-600',
+    amber: 'from-amber-500 to-orange-600',
+    emerald: 'from-emerald-500 to-teal-600',
+    blue: 'from-blue-500 to-cyan-600'
+  };
+
+  return (
+    <button className="w-full flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/15 hover:bg-white/10 transition-all text-left group">
+      <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
+        <Icon sx={{ fontSize: 24 }} />
+      </div>
+      <div>
+        <p className="text-white font-medium">{title}</p>
+        <p className="text-xs text-zinc-500">{description}</p>
+      </div>
+    </button>
   );
 };
 

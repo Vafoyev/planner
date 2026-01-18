@@ -1,26 +1,12 @@
-import React from 'react';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import RadioButtonUncheckedIcon from '@mui/icons-material/RadioButtonUnchecked';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import React, { useState } from 'react';
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
+import CloseIcon from '@mui/icons-material/Close';
 import AccessTimeIcon from '@mui/icons-material/AccessTime';
-
-const calculateBandScore = (percentage) => {
-    if (percentage >= 89) return 9.0;
-    if (percentage >= 84) return 8.5;
-    if (percentage >= 78) return 8.0;
-    if (percentage >= 73) return 7.5;
-    if (percentage >= 67) return 7.0;
-    if (percentage >= 60) return 6.5;
-    if (percentage >= 53) return 6.0;
-    if (percentage >= 47) return 5.5;
-    if (percentage >= 40) return 5.0;
-    if (percentage >= 33) return 4.5;
-    if (percentage >= 27) return 4.0;
-    if (percentage >= 20) return 3.5;
-    if (percentage >= 13) return 3.0;
-    return 0;
-};
+import StarIcon from '@mui/icons-material/Star';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PendingIcon from '@mui/icons-material/Pending';
 
 const TaskCard = ({
     task,
@@ -29,163 +15,237 @@ const TaskCard = ({
     skill,
     userMode,
     selectedStudent,
+    studentScore = 0,
     onUpdateTask,
     onDeleteTask,
     onUpdateScore
 }) => {
-    const maxScore = task.maxScore || 40;
-    const studentScore = selectedStudent?.scores?.[task.id] || 0;
-    const percentage = maxScore > 0 ? (studentScore / maxScore) * 100 : 0;
-    const bandScore = calculateBandScore(percentage);
+    const [isEditing, setIsEditing] = useState(false);
+    const [editTitle, setEditTitle] = useState(task.title);
+    const [editMaxScore, setEditMaxScore] = useState(task.maxScore);
+    const [scoreInput, setScoreInput] = useState(studentScore || '');
+    const [isGrading, setIsGrading] = useState(false);
 
-    const getColorClass = (pct) => {
-        if (pct >= 78) return 'excellent';
-        if (pct >= 60) return 'good';
-        if (pct >= 40) return 'average';
-        if (pct > 0) return 'low';
-        return 'none';
+    const handleSave = () => {
+        onUpdateTask({
+            ...task,
+            title: editTitle,
+            maxScore: parseInt(editMaxScore) || task.maxScore
+        });
+        setIsEditing(false);
     };
 
-    const colorClass = getColorClass(percentage);
+    const handleGrade = () => {
+        const score = parseInt(scoreInput);
+        if (score >= 0 && score <= task.maxScore) {
+            onUpdateScore(score);
+            setIsGrading(false);
+        }
+    };
 
+    const getScoreColor = () => {
+        if (!studentScore) return 'text-zinc-500';
+        const percentage = (studentScore / task.maxScore) * 100;
+        if (percentage >= 80) return 'text-emerald-400';
+        if (percentage >= 60) return 'text-blue-400';
+        if (percentage >= 40) return 'text-amber-400';
+        return 'text-red-400';
+    };
+
+    const getScoreBg = () => {
+        if (!studentScore) return 'bg-zinc-500/10';
+        const percentage = (studentScore / task.maxScore) * 100;
+        if (percentage >= 80) return 'bg-emerald-500/10';
+        if (percentage >= 60) return 'bg-blue-500/10';
+        if (percentage >= 40) return 'bg-amber-500/10';
+        return 'bg-red-500/10';
+    };
+
+    // Format deadline
+    const formatDeadline = () => {
+        if (task.deadlineDate) {
+            const date = new Date(task.deadlineDate);
+            return `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} at ${task.deadline || '18:00'}`;
+        }
+        return task.deadline || 'No deadline';
+    };
 
     return (
-        <div className={`task-card glass-card ${colorClass} group`}>
-            <div className="task-content flex items-center gap-4">
-                {/* Task Number */}
-                <div className={`task-number ${dayColor} font-serif`}>
-                    {index + 1}
-                </div>
+        <div className={`task-card group relative ${studentScore > 0 ? 'border-l-emerald-500' : ''}`}>
+            {/* Task Number Badge */}
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-xs font-bold text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                {index + 1}
+            </div>
 
-                {/* Task Icon */}
-                <div className={`task-icon ${colorClass}`}>
-                    {percentage >= 60 ? (
-                        <CheckCircleIcon sx={{ fontSize: 24, color: '#10b981' }} />
-                    ) : studentScore > 0 ? (
-                        <TrendingUpIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
-                    ) : (
-                        <RadioButtonUncheckedIcon sx={{ fontSize: 24, color: '#475569' }} />
-                    )}
-                </div>
-
-                {/* Task Info */}
-                <div className="task-info flex-1">
-                    <div className="flex items-center gap-3">
-                        {userMode === 'teacher' ? (
+            <div className="flex items-start gap-4">
+                {/* Left: Task Info */}
+                <div className="flex-1 min-w-0">
+                    {isEditing ? (
+                        <div className="space-y-3">
                             <input
                                 type="text"
-                                value={task.title}
-                                onChange={(e) => onUpdateTask({ ...task, title: e.target.value })}
-                                className="task-title-input glass-input font-serif text-lg w-full"
-                                style={{
-                                    background: 'transparent',
-                                    border: 'none',
-                                    borderBottom: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: 0,
-                                    padding: '4px 0',
-                                    color: '#fff'
-                                }}
-                                placeholder="Enter task title..."
+                                value={editTitle}
+                                onChange={(e) => setEditTitle(e.target.value)}
+                                className="glass-input w-full"
+                                autoFocus
                             />
-                        ) : (
-                            <h4 className="task-title font-serif text-lg text-white">{task.title || "No Title"}</h4>
-                        )}
-
-                        {/* Deadline Tag */}
-                        {task.deadline && (
-                            <div className="flex items-center gap-1 px-2 py-1 bg-slate-800 rounded text-xs text-slate-400 border border-slate-700">
-                                <AccessTimeIcon sx={{ fontSize: 12 }} />
-                                {task.deadline}
+                            <div className="flex gap-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-zinc-500">Max Score:</span>
+                                    <input
+                                        type="number"
+                                        value={editMaxScore}
+                                        onChange={(e) => setEditMaxScore(e.target.value)}
+                                        className="glass-input w-20 text-center"
+                                        min="1"
+                                        max="100"
+                                    />
+                                </div>
+                                <button onClick={handleSave} className="px-3 py-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg text-sm flex items-center gap-1 hover:bg-emerald-500/30">
+                                    <SaveIcon sx={{ fontSize: 14 }} />
+                                    Save
+                                </button>
+                                <button onClick={() => setIsEditing(false)} className="px-3 py-1.5 bg-white/5 text-zinc-400 rounded-lg text-sm hover:bg-white/10">
+                                    Cancel
+                                </button>
                             </div>
-                        )}
-                    </div>
-
-                    <p className="task-meta text-xs text-zinc-500 uppercase tracking-wider mt-1 font-medium">
-                        {skill} • Task #{index + 1}
-                        {userMode === 'teacher' && task.date && ` • ${task.date.substring(0, 10)}`}
-                    </p>
-                </div>
-
-                {/* Scoring Section */}
-                {/* Score Input/Display */}
-                <div className="score-box flex flex-col items-center">
-                    <span className="score-label text-[10px] uppercase text-zinc-600 font-bold mb-1">Score</span>
-                    {userMode === 'teacher' && selectedStudent ? (
-                        <div className="flex flex-col gap-2 items-center">
-                            <div className="score-input-group flex items-center bg-black/20 rounded-lg p-1 border border-white/5">
-                                <input
-                                    type="number"
-                                    value={studentScore}
-                                    onChange={(e) => {
-                                        const val = Math.min(maxScore, Math.max(0, Number(e.target.value)));
-                                        onUpdateScore(val);
-                                    }}
-                                    min="0"
-                                    max={maxScore}
-                                    className="score-input bg-transparent text-white text-center w-10 font-bold outline-none"
-                                />
-                                <span className="score-divider text-zinc-600 text-sm">/</span>
-                                <input
-                                    type="number"
-                                    value={maxScore}
-                                    onChange={(e) => {
-                                        const val = Math.min(100, Math.max(1, Number(e.target.value)));
-                                        onUpdateTask({ ...task, maxScore: val });
-                                    }}
-                                    min="1"
-                                    max="100"
-                                    className="max-input bg-transparent text-zinc-500 text-center w-10 text-xs outline-none"
-                                />
-                            </div>
-                            {/* explicit check button for visual feedback */}
-                            <button
-                                onClick={() => onUpdateScore(studentScore > 0 ? studentScore : maxScore)} // Auto-fill max if 0, else keep
-                                className={`text-xs px-2 py-1 rounded border transition-colors ${studentScore > 0
-                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
-                                    : 'bg-white/5 text-zinc-400 border-white/10 hover:bg-white/10'
-                                    }`}
-                                title="Mark as Checked"
-                            >
-                                {studentScore > 0 ? 'Checked' : 'Check'}
-                            </button>
                         </div>
                     ) : (
-                        <div className={`score-display ${colorClass} font-mono text-lg font-bold`}>
-                            <span className={studentScore > 0 ? 'text-white' : 'text-zinc-600'}>
-                                {studentScore > 0 ? studentScore : '—'}
-                            </span>
-                            <span className="text-zinc-600 text-sm">/{maxScore}</span>
-                        </div>
+                        <>
+                            <h4 className="text-lg font-medium text-white mb-2 group-hover:text-amber-400 transition-colors">
+                                {task.title}
+                            </h4>
+                            <div className="flex items-center gap-4 text-sm">
+                                <span className="flex items-center gap-1.5 text-zinc-400">
+                                    <AccessTimeIcon sx={{ fontSize: 14 }} />
+                                    {formatDeadline()}
+                                </span>
+                                <span className="flex items-center gap-1.5 text-amber-500">
+                                    <StarIcon sx={{ fontSize: 14 }} />
+                                    {task.maxScore} points
+                                </span>
+                                <span className="text-xs px-2 py-0.5 bg-white/5 rounded text-zinc-500">
+                                    {skill}
+                                </span>
+                            </div>
+                        </>
                     )}
                 </div>
 
-                {/* Band Score */}
-                <div className="band-box flex flex-col items-center min-w-[50px]">
-                    <span className="band-label text-[10px] uppercase text-zinc-600 font-bold mb-1">Band</span>
-                    <div className={`band-display text-xl font-bold font-serif ${studentScore > 0 ? 'text-amber-500' : 'text-zinc-700'}`}>
-                        {studentScore > 0 ? bandScore.toFixed(1) : '—'}
+                {/* Right: Score / Actions */}
+                <div className="flex items-center gap-3">
+                    {/* Score Display */}
+                    {selectedStudent && userMode === 'teacher' && (
+                        <div className="flex items-center gap-2">
+                            {isGrading ? (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="number"
+                                        value={scoreInput}
+                                        onChange={(e) => setScoreInput(e.target.value)}
+                                        className="glass-input w-16 text-center py-1"
+                                        min="0"
+                                        max={task.maxScore}
+                                        autoFocus
+                                    />
+                                    <span className="text-zinc-500">/ {task.maxScore}</span>
+                                    <button
+                                        onClick={handleGrade}
+                                        className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded hover:bg-emerald-500/30"
+                                    >
+                                        <SaveIcon sx={{ fontSize: 16 }} />
+                                    </button>
+                                    <button
+                                        onClick={() => setIsGrading(false)}
+                                        className="p-1.5 bg-white/5 text-zinc-400 rounded hover:bg-white/10"
+                                    >
+                                        <CloseIcon sx={{ fontSize: 16 }} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => {
+                                        setScoreInput(studentScore || '');
+                                        setIsGrading(true);
+                                    }}
+                                    className={`px-4 py-2 rounded-lg ${getScoreBg()} ${getScoreColor()} font-semibold flex items-center gap-2 hover:ring-2 hover:ring-white/20 transition-all`}
+                                >
+                                    {studentScore > 0 ? (
+                                        <>
+                                            <CheckCircleIcon sx={{ fontSize: 16 }} />
+                                            {studentScore}/{task.maxScore}
+                                        </>
+                                    ) : (
+                                        <>
+                                            <PendingIcon sx={{ fontSize: 16 }} />
+                                            Grade
+                                        </>
+                                    )}
+                                </button>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Student View - Show Score */}
+                    {userMode === 'student' && (
+                        <div className={`px-4 py-2 rounded-lg ${getScoreBg()} ${getScoreColor()} font-semibold flex items-center gap-2`}>
+                            {studentScore > 0 ? (
+                                <>
+                                    <CheckCircleIcon sx={{ fontSize: 16 }} />
+                                    {studentScore}/{task.maxScore}
+                                </>
+                            ) : (
+                                <>
+                                    <PendingIcon sx={{ fontSize: 16 }} />
+                                    Pending
+                                </>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Teacher Actions */}
+                    {userMode === 'teacher' && !isEditing && !isGrading && (
+                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                                onClick={() => setIsEditing(true)}
+                                className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-amber-400"
+                                title="Edit Task"
+                            >
+                                <EditIcon sx={{ fontSize: 18 }} />
+                            </button>
+                            <button
+                                onClick={() => {
+                                    if (window.confirm('Delete this task?')) {
+                                        onDeleteTask();
+                                    }
+                                }}
+                                className="p-2 hover:bg-red-500/10 rounded-lg text-zinc-400 hover:text-red-400"
+                                title="Delete Task"
+                            >
+                                <DeleteIcon sx={{ fontSize: 18 }} />
+                            </button>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Progress Bar for graded tasks */}
+            {studentScore > 0 && (
+                <div className="mt-4 pt-4 border-t border-white/5">
+                    <div className="flex items-center justify-between text-xs mb-2">
+                        <span className="text-zinc-500">Score Progress</span>
+                        <span className={getScoreColor()}>
+                            {Math.round((studentScore / task.maxScore) * 100)}%
+                        </span>
+                    </div>
+                    <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                            className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                            style={{ width: `${(studentScore / task.maxScore) * 100}%` }}
+                        />
                     </div>
                 </div>
-
-                {/* Delete (Teacher Only) */}
-                {userMode === 'teacher' && (
-                    <button
-                        onClick={onDeleteTask}
-                        className="btn-delete opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-900/50 hover:text-red-500 hover:bg-red-500/10 rounded-full"
-                        title="Delete"
-                    >
-                        <DeleteIcon sx={{ fontSize: 20 }} />
-                    </button>
-                )}
-            </div>
-
-            {/* Progress Bar */}
-            <div className="task-progress mt-3 h-1 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                    className={`progress-fill h-full transition-all duration-500 ${colorClass === 'excellent' ? 'bg-emerald-500' : colorClass === 'good' ? 'bg-blue-500' : colorClass === 'average' ? 'bg-amber-500' : 'bg-zinc-700'}`}
-                    style={{ width: `${percentage}%` }}
-                />
-            </div>
+            )}
         </div>
     );
 };

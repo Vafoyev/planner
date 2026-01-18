@@ -8,22 +8,21 @@
   box-sizing: border-box;
 }
 
-:root {
+/* Dark Theme (Default) */
+:root,
+:root[data-theme="dark"] {
   /* Core Colors */
   --bg-dark: #09090b;
+  --bg-secondary: #18181b;
   --text-primary: #ffffff;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
 
   /* Accent Colors */
   --accent-primary: #f59e0b;
-  /* Amber 500 */
   --accent-secondary: #8b5cf6;
-  /* Violet 500 */
   --accent-success: #10b981;
-  /* Emerald 500 */
   --accent-error: #ef4444;
-  /* Red 500 */
 
   /* Glassmorphism Variables */
   --glass-bg: rgba(255, 255, 255, 0.03);
@@ -38,6 +37,46 @@
   --radius-md: 16px;
   --radius-lg: 24px;
   --radius-full: 9999px;
+
+  /* Body Background */
+  --body-bg: linear-gradient(180deg, #09090b 0%, #18181b 100%);
+  --body-bg-gradient-1: rgba(139, 92, 246, 0.15);
+  --body-bg-gradient-2: rgba(245, 158, 11, 0.15);
+}
+
+/* Light Theme */
+:root[data-theme="light"] {
+  /* Core Colors */
+  --bg-dark: #f8fafc;
+  --bg-secondary: #ffffff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+
+  /* Accent Colors - keep same for brand consistency */
+  --accent-primary: #f59e0b;
+  --accent-secondary: #8b5cf6;
+  --accent-success: #10b981;
+  --accent-error: #ef4444;
+
+  /* Glassmorphism Variables - adjusted for light */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
+  --glass-blur: blur(12px);
+
+  --glass-panel-bg: rgba(255, 255, 255, 0.8);
+  --glass-hover: rgba(0, 0, 0, 0.05);
+
+  /* Body Background */
+  --body-bg: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%);
+  --body-bg-gradient-1: rgba(139, 92, 246, 0.08);
+  --body-bg-gradient-2: rgba(245, 158, 11, 0.08);
+}
+
+/* Theme transition */
+* {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
 }
 
 body {
@@ -45,14 +84,58 @@ body {
   background-color: var(--bg-dark);
   color: var(--text-primary);
   min-height: 100vh;
-  /* Premium Dark Gradient Background */
+  /* Premium Gradient Background */
   background:
-    radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.15), transparent 25%),
-    radial-gradient(circle at 85% 30%, rgba(245, 158, 11, 0.15), transparent 25%),
-    linear-gradient(180deg, #09090b 0%, #18181b 100%);
+    radial-gradient(circle at 15% 50%, var(--body-bg-gradient-1), transparent 25%),
+    radial-gradient(circle at 85% 30%, var(--body-bg-gradient-2), transparent 25%),
+    var(--body-bg);
   background-attachment: fixed;
   overflow-x: hidden;
 }
+
+/* Light theme specific overrides */
+:root[data-theme="light"] .glass-panel {
+  background: var(--glass-panel-bg);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(0, 0, 0, 0.02) inset;
+}
+
+:root[data-theme="light"] .glass-input {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
+}
+
+:root[data-theme="light"] .glass-input::placeholder {
+  color: rgba(0, 0, 0, 0.4);
+}
+
+:root[data-theme="light"] .glass-input:focus {
+  background: rgba(255, 255, 255, 1);
+  border-color: var(--accent-primary);
+}
+
+:root[data-theme="light"] .sidebar .glass-panel {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+:root[data-theme="light"] .login-container {
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+}
+
+:root[data-theme="light"] .login-header h1 {
+  background: linear-gradient(135deg, #1e293b, #f59e0b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+:root[data-theme="light"] select option {
+  background: white;
+  color: #1e293b;
+}
+
+
 
 /* Glass Utilities */
 .glass-panel {
@@ -635,21 +718,40 @@ body {
 /* Main Content */
 .main-content {
   flex: 1;
-  margin-left: 280px;
-  padding: 32px;
+  width: 100%;
+  margin-left: 0;
+  transition: margin-left 0.3s ease-in-out;
+}
+
+@media (min-width: 1024px) {
+  .main-content {
+    /* No margin needed since sidebar is relative in flex container */
+    margin-left: 0;
+  }
 }
 
 /* Page Headers */
 .page-glass-header {
   display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 32px;
-  padding: 24px;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 20px;
   background: var(--glass-panel-bg);
   backdrop-filter: blur(16px);
   border: 1px solid var(--glass-border);
-  border-radius: 20px;
+  border-radius: 16px;
+}
+
+@media (min-width: 768px) {
+  .page-glass-header {
+    flex-direction: row;
+    align-items: center;
+    gap: 24px;
+    padding: 28px 32px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+  }
 }
 
 .header-icon-glass {

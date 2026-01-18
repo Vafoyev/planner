@@ -1,122 +1,113 @@
 import React, { useState, useEffect } from 'react';
+import { ThemeProvider } from './context/ThemeContext';
+import { initializeDatabase, getGroups, getUsers, getAppData, saveAppData } from './data';
 import Layout from './components/Layout';
 import ScheduleView from './components/ScheduleView';
 import StatsDashboard from './components/StatsDashboard';
 import StudentManager from './components/StudentManager';
+import GroupManager from './components/GroupManager';
 import DashboardHome from './components/DashboardHome';
 import Login from './components/Login';
+import AdminPanel from './components/AdminPanel';
 
-// Initial empty state
-const INITIAL_DATA = {
-  students: [],
-  tasks: {
-    Monday: [],
-    Tuesday: [],
-    Wednesday: [],
-    Thursday: [],
-    Friday: [],
-    Saturday: [],
-    Sunday: []
-  }
-};
-
+// Initialize database on app load
+initializeDatabase();
 
 function App() {
-  /* 
-    User State Structure:
-    {
-      role: 'teacher' | 'student',
-      name: string,
-      id: number | null
-    } 
-  */
+  // Auth State
   const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('ielts_auth_v2');
+    const saved = localStorage.getItem('edu_current_user');
     return saved ? JSON.parse(saved) : null;
   });
 
-  const [data, setData] = useState(() => {
-    const saved = localStorage.getItem('ielts_academy_v4');
-    return saved ? JSON.parse(saved) : INITIAL_DATA;
-  });
+  const [isAdminMode, setIsAdminMode] = useState(false);
 
-  // Derived state for compatibility with existing components
-  const userMode = user?.role || 'student'; // Default safe fallback
+  // App State
   const [currentView, setCurrentView] = useState('dashboard');
+  const [selectedGroup, setSelectedGroup] = useState(null);
   const [selectedStudent, setSelectedStudent] = useState(null);
 
-  useEffect(() => {
-    localStorage.setItem('ielts_academy_v4', JSON.stringify(data));
-  }, [data]);
+  // Data State
+  const [appData, setAppData] = useState(() => getAppData());
+  const [groups, setGroups] = useState(() => getGroups());
+  const [allUsers, setAllUsers] = useState(() => getUsers());
 
+  // Reload data when needed
+  const reloadData = () => {
+    setGroups(getGroups());
+    setAllUsers(getUsers());
+    setAppData(getAppData());
+  };
+
+  useEffect(() => {
+    reloadData();
+  }, [user]);
+
+  // Persist app data
+  useEffect(() => {
+    saveAppData(appData);
+  }, [appData]);
+
+  // Get students based on context
+  const getStudents = () => {
+    const students = allUsers.filter(u => u.role === 'student');
+
+    if (selectedGroup) {
+      return students.filter(s => selectedGroup.studentIds.includes(s.id));
+    }
+
+    // For teachers, show students from their groups
+    if (user?.role === 'teacher') {
+      const teacherGroups = groups.filter(g => g.teacherId === user.id);
+      const studentIds = new Set(teacherGroups.flatMap(g => g.studentIds));
+      return students.filter(s => studentIds.has(s.id));
+    }
+
+    return students;
+  };
+
+  // Login handlers
   const handleLogin = (userData) => {
     setUser(userData);
-    localStorage.setItem('ielts_auth_v2', JSON.stringify(userData));
-    // If student, check if they are added to the class yet
-    if (userData.role === 'student') {
-      const studentExists = data.students.find(s => s.id == userData.id || s.username === userData.username);
-      if (!studentExists) {
-        // Do not auto-create. They see empty view until teacher adds them.
-      }
-    }
+    localStorage.setItem('edu_current_user', JSON.stringify(userData));
+    setIsAdminMode(false);
+    reloadData();
+  };
+
+  const handleAdminLogin = (adminData) => {
+    setUser(adminData);
+    localStorage.setItem('edu_current_user', JSON.stringify(adminData));
+    setIsAdminMode(true);
   };
 
   const handleLogout = () => {
     setUser(null);
-    localStorage.removeItem('ielts_auth_v2');
-    setCurrentView('schedule');
+    setIsAdminMode(false);
+    localStorage.removeItem('edu_current_user');
+    setCurrentView('dashboard');
+    setSelectedGroup(null);
     setSelectedStudent(null);
   };
 
-  if (!user) {
-    return <Login onLogin={handleLogin} />;
-  }
-
-  // Student Management
-  const handleAddStudent = (userObj) => {
-    // Check duplication
-    if (data.students.some(s => s.id === userObj.id)) return;
-
-    const newStudent = {
-      id: userObj.id,
-      name: userObj.name,
-      username: userObj.username,
-      email: userObj.email,
-      scores: {}
-    };
-    setData(prev => ({
-      ...prev,
-      students: [...prev.students, newStudent]
-    }));
-  };
-
-  const handleDeleteStudent = (studentId) => {
-    setData(prev => ({
-      ...prev,
-      students: prev.students.filter(s => s.id !== studentId)
-    }));
-    if (selectedStudent?.id === studentId) {
-      setSelectedStudent(null);
-    }
-  };
-
-  // Task Management (by Teacher)
+  // Task Management
   const handleAddTask = (day, newTask) => {
-    setData(prev => ({
+    setAppData(prev => ({
       ...prev,
       tasks: {
         ...prev.tasks,
-        [day]: [...prev.tasks[day], {
+        [day]: [...(prev.tasks[day] || []), {
           ...newTask,
           id: Date.now(),
-          maxScore: newTask.maxScore || 10
+          groupId: selectedGroup?.id || null,
+          maxScore: newTask.maxScore || 10,
+          createdBy: user?.id
         }]
       }
     }));
   };
 
   const handleUpdateTask = (day, updatedTask) => {
-    setData(prev => ({
+    setAppData(prev => ({
       ...prev,
       tasks: {
         ...prev.tasks,
@@ -128,7 +119,7 @@ function App() {
   };
 
   const handleDeleteTask = (day, taskId) => {
-    setData(prev => ({
+    setAppData(prev => ({
       ...prev,
       tasks: {
         ...prev.tasks,
@@ -137,80 +128,148 @@ function App() {
     }));
   };
 
-  // Score Management (per student per task)
+  // Score Management
   const handleUpdateScore = (studentId, taskId, score) => {
-    setData(prev => ({
+    // Store scores in appData
+    setAppData(prev => ({
       ...prev,
-      students: prev.students.map(student => {
-        if (student.id === studentId) {
-          return {
-            ...student,
-            scores: {
-              ...student.scores,
-              [taskId]: score
-            }
-          };
-        }
-        return student;
-      })
+      scores: {
+        ...prev.scores,
+        [`${studentId}_${taskId}`]: score
+      }
     }));
   };
 
-  const handleImportData = (importedData) => {
-    if (importedData && importedData.students && importedData.tasks) {
-      setData(importedData);
-      alert('Data imported successfully!');
-    } else {
-      alert('Invalid data format.');
+  // Get student with scores
+  const getStudentWithScores = (student) => {
+    if (!student) return null;
+    const scores = {};
+    Object.entries(appData.scores || {}).forEach(([key, value]) => {
+      if (key.startsWith(`${student.id}_`)) {
+        const taskId = key.split('_')[1];
+        scores[taskId] = value;
+      }
+    });
+    return { ...student, scores };
+  };
+
+  // Not logged in
+  if (!user) {
+    return (
+      <ThemeProvider>
+        <Login onLogin={handleLogin} onAdminLogin={handleAdminLogin} />
+      </ThemeProvider>
+    );
+  }
+
+  // Admin Panel Mode
+  if (isAdminMode || user.role === 'superadmin') {
+    return (
+      <ThemeProvider>
+        <AdminPanel onLogout={handleLogout} />
+      </ThemeProvider>
+    );
+  }
+
+  const userMode = user.role === 'headteacher' ? 'teacher' : user.role;
+  const students = getStudents();
+  const enrichedStudent = getStudentWithScores(selectedStudent);
+
+  // Filter tasks for students
+  const getFilteredTasks = () => {
+    if (user.role === 'student') {
+      // Show only tasks assigned to student's groups
+      const studentGroups = groups.filter(g => g.studentIds.includes(user.id));
+      const groupIds = new Set(studentGroups.map(g => g.id));
+
+      const filteredTasks = {};
+      Object.entries(appData.tasks || {}).forEach(([day, dayTasks]) => {
+        filteredTasks[day] = dayTasks.filter(task =>
+          !task.groupId || groupIds.has(task.groupId)
+        );
+      });
+      return filteredTasks;
     }
+
+    // For teachers, optionally filter by selected group
+    if (selectedGroup) {
+      const filteredTasks = {};
+      Object.entries(appData.tasks || {}).forEach(([day, dayTasks]) => {
+        filteredTasks[day] = dayTasks.filter(task =>
+          !task.groupId || task.groupId === selectedGroup.id
+        );
+      });
+      return filteredTasks;
+    }
+
+    return appData.tasks || {};
   };
 
   return (
-    <Layout
-      currentView={currentView}
-      setCurrentView={setCurrentView}
-      userMode={userMode}
-      user={user}
-      students={data.students}
-      selectedStudent={selectedStudent}
-      setSelectedStudent={setSelectedStudent}
-      onLogout={handleLogout}
-    >
-      {currentView === 'dashboard' ? (
-        <DashboardHome
-          userMode={userMode}
-          students={data.students}
-          tasks={data.tasks}
-        />
-      ) : currentView === 'students' && userMode === 'teacher' ? (
-        <StudentManager
-          students={data.students}
-          fullData={data}
-          onAddStudent={handleAddStudent}
-          onDeleteStudent={handleDeleteStudent}
-          selectedStudent={selectedStudent}
-          setSelectedStudent={setSelectedStudent}
-          onImportData={handleImportData}
-        />
-      ) : currentView === 'schedule' ? (
-        <ScheduleView
-          tasks={data.tasks}
-          students={data.students}
-          selectedStudent={selectedStudent}
-          onUpdateTask={handleUpdateTask}
-          onAddTask={handleAddTask}
-          onDeleteTask={handleDeleteTask}
-          onUpdateScore={handleUpdateScore}
-          userMode={userMode}
-        />
-      ) : currentView === 'statistics' ? (
-        <StatsDashboard
-          tasks={data.tasks}
-          students={data.students}
-          selectedStudent={selectedStudent}
-        />
-      ) : null}
-    </Layout>
+    <ThemeProvider>
+      <Layout
+        currentView={currentView}
+        setCurrentView={setCurrentView}
+        userMode={userMode}
+        user={user}
+        groups={groups}
+        selectedGroup={selectedGroup}
+        setSelectedGroup={setSelectedGroup}
+        students={students}
+        selectedStudent={selectedStudent}
+        setSelectedStudent={setSelectedStudent}
+        onLogout={handleLogout}
+      >
+        {currentView === 'dashboard' ? (
+          <DashboardHome
+            userMode={userMode}
+            user={user}
+            students={students}
+            tasks={getFilteredTasks()}
+            groups={groups}
+          />
+        ) : currentView === 'groups' && userMode === 'teacher' ? (
+          <GroupManager
+            user={user}
+            selectedGroup={selectedGroup}
+            onSelectGroup={setSelectedGroup}
+          />
+        ) : currentView === 'students' && userMode === 'teacher' ? (
+          <StudentManager
+            students={students}
+            groups={groups}
+            selectedGroup={selectedGroup}
+            user={user}
+            fullData={appData}
+            onReload={reloadData}
+          />
+        ) : currentView === 'schedule' ? (
+          <ScheduleView
+            tasks={getFilteredTasks()}
+            students={students}
+            selectedStudent={enrichedStudent}
+            selectedGroup={selectedGroup}
+            onUpdateTask={handleUpdateTask}
+            onAddTask={handleAddTask}
+            onDeleteTask={handleDeleteTask}
+            onUpdateScore={handleUpdateScore}
+            userMode={userMode}
+            user={user}
+            appData={appData}
+          />
+        ) : currentView === 'statistics' ? (
+          <StatsDashboard
+            tasks={getFilteredTasks()}
+            students={students.map(s => getStudentWithScores(s))}
+            selectedStudent={enrichedStudent}
+            selectedGroup={selectedGroup}
+            groups={groups}
+            userMode={userMode}
+            user={user}
+          />
+        ) : null}
+      </Layout>
+    </ThemeProvider>
   );
 }
 
