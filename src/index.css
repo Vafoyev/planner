@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -8,201 +8,309 @@
   box-sizing: border-box;
 }
 
-/* Dark Theme (Default) */
+/* ============================================
+   DARK THEME - Premium English Academy Style
+   ============================================ */
 :root,
 :root[data-theme="dark"] {
-  /* Core Colors */
-  --bg-dark: #09090b;
-  --bg-secondary: #18181b;
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  /* Primary Colors - Deep Navy & Royal Blue */
+  --bg-primary: #0a0f1a;
+  --bg-secondary: #111827;
+  --bg-tertiary: #1e293b;
 
-  /* Accent Colors */
-  --accent-primary: #f59e0b;
-  --accent-secondary: #8b5cf6;
-  --accent-success: #10b981;
-  --accent-error: #ef4444;
+  /* Text Colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-accent: #fbbf24;
 
-  /* Glassmorphism Variables */
-  --glass-bg: rgba(255, 255, 255, 0.03);
+  /* Accent Colors - British/Academic Theme */
+  --accent-gold: #f59e0b;
+  --accent-gold-light: #fbbf24;
+  --accent-royal: #6366f1;
+  --accent-royal-light: #818cf8;
+  --accent-emerald: #10b981;
+  --accent-ruby: #ef4444;
+  --accent-oxford: #1e40af;
+  --accent-cambridge: #0891b2;
+
+  /* Skill Colors */
+  --listening-color: #8b5cf6;
+  --reading-color: #3b82f6;
+  --writing-color: #10b981;
+  --speaking-color: #f59e0b;
+
+  /* Glassmorphism */
+  --glass-bg: rgba(17, 24, 39, 0.7);
   --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-  --glass-blur: blur(12px);
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --glass-blur: blur(16px);
+  --glass-panel-bg: rgba(30, 41, 59, 0.6);
+  --glass-hover: rgba(255, 255, 255, 0.06);
 
-  --glass-panel-bg: rgba(23, 23, 23, 0.6);
-  --glass-hover: rgba(255, 255, 255, 0.08);
-
-  /* Input/Select backgrounds */
+  /* Input */
   --input-bg: rgba(30, 41, 59, 0.8);
-  --input-border: rgba(255, 255, 255, 0.1);
-  --input-text: #ffffff;
+  --input-border: rgba(255, 255, 255, 0.12);
+  --input-text: #f8fafc;
+  --input-focus: rgba(245, 158, 11, 0.3);
 
-  /* Sidebar specific */
-  --sidebar-bg: rgba(23, 23, 23, 0.6);
-  --nav-active-bg: rgba(245, 158, 11, 0.1);
-  --nav-hover-bg: rgba(255, 255, 255, 0.05);
+  /* Sidebar */
+  --sidebar-bg: rgba(17, 24, 39, 0.95);
+  --nav-active-bg: rgba(245, 158, 11, 0.15);
+  --nav-active-border: rgba(245, 158, 11, 0.5);
+  --nav-hover-bg: rgba(255, 255, 255, 0.04);
 
+  /* Cards & Panels */
+  --card-bg: linear-gradient(145deg, rgba(30, 41, 59, 0.8), rgba(17, 24, 39, 0.6));
+  --card-border: rgba(255, 255, 255, 0.06);
+  --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+
+  /* Gradients */
+  --gradient-gold: linear-gradient(135deg, #f59e0b, #d97706);
+  --gradient-royal: linear-gradient(135deg, #6366f1, #4f46e5);
+  --gradient-emerald: linear-gradient(135deg, #10b981, #059669);
+  --gradient-premium: linear-gradient(135deg, #1e293b, #0f172a);
+
+  /* Body Background */
+  --body-gradient:
+    radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(245, 158, 11, 0.1) 0%, transparent 50%),
+    linear-gradient(180deg, #0a0f1a 0%, #111827 100%);
+
+  /* Radius */
   --radius-sm: 8px;
-  --radius-md: 16px;
-  --radius-lg: 24px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
   --radius-full: 9999px;
 
-  /* Body Background */
-  --body-bg: linear-gradient(180deg, #09090b 0%, #18181b 100%);
-  --body-bg-gradient-1: rgba(139, 92, 246, 0.15);
-  --body-bg-gradient-2: rgba(245, 158, 11, 0.15);
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
 }
 
-/* Light Theme */
+/* ============================================
+   LIGHT THEME - Clean Academic Style
+   ============================================ */
 :root[data-theme="light"] {
-  /* Core Colors */
-  --bg-dark: #f8fafc;
+  /* Primary Colors - Clean White & Cream */
+  --bg-primary: #f8fafc;
   --bg-secondary: #ffffff;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --text-muted: #94a3b8;
+  --bg-tertiary: #f1f5f9;
 
-  /* Accent Colors - keep same for brand consistency */
-  --accent-primary: #f59e0b;
-  --accent-secondary: #8b5cf6;
-  --accent-success: #10b981;
-  --accent-error: #ef4444;
+  /* Text Colors */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --text-accent: #b45309;
 
-  /* Glassmorphism Variables - adjusted for light */
-  --glass-bg: rgba(255, 255, 255, 0.85);
-  --glass-border: rgba(0, 0, 0, 0.1);
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
-  --glass-blur: blur(16px);
+  /* Accent Colors */
+  --accent-gold: #d97706;
+  --accent-gold-light: #f59e0b;
+  --accent-royal: #4f46e5;
+  --accent-royal-light: #6366f1;
+  --accent-emerald: #059669;
+  --accent-ruby: #dc2626;
+  --accent-oxford: #1e40af;
+  --accent-cambridge: #0891b2;
 
-  --glass-panel-bg: rgba(255, 255, 255, 0.9);
-  --glass-hover: rgba(0, 0, 0, 0.04);
+  /* Skill Colors - Slightly muted for light */
+  --listening-color: #7c3aed;
+  --reading-color: #2563eb;
+  --writing-color: #059669;
+  --speaking-color: #d97706;
 
-  /* Input/Select backgrounds */
+  /* Glassmorphism - Light */
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: rgba(15, 23, 42, 0.08);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  --glass-blur: blur(20px);
+  --glass-panel-bg: rgba(255, 255, 255, 0.95);
+  --glass-hover: rgba(15, 23, 42, 0.04);
+
+  /* Input */
   --input-bg: rgba(241, 245, 249, 0.9);
-  --input-border: rgba(0, 0, 0, 0.12);
-  --input-text: #1e293b;
+  --input-border: rgba(15, 23, 42, 0.12);
+  --input-text: #0f172a;
+  --input-focus: rgba(245, 158, 11, 0.2);
 
-  /* Sidebar specific */
-  --sidebar-bg: rgba(255, 255, 255, 0.95);
-  --nav-active-bg: rgba(245, 158, 11, 0.15);
-  --nav-hover-bg: rgba(0, 0, 0, 0.04);
+  /* Sidebar */
+  --sidebar-bg: rgba(255, 255, 255, 0.98);
+  --nav-active-bg: rgba(245, 158, 11, 0.12);
+  --nav-active-border: rgba(217, 119, 6, 0.6);
+  --nav-hover-bg: rgba(15, 23, 42, 0.04);
+
+  /* Cards */
+  --card-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+  --card-border: rgba(15, 23, 42, 0.06);
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+
+  /* Gradients */
+  --gradient-gold: linear-gradient(135deg, #f59e0b, #d97706);
+  --gradient-royal: linear-gradient(135deg, #6366f1, #4f46e5);
+  --gradient-emerald: linear-gradient(135deg, #10b981, #059669);
+  --gradient-premium: linear-gradient(135deg, #ffffff, #f1f5f9);
 
   /* Body Background */
-  --body-bg: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
-  --body-bg-gradient-1: rgba(139, 92, 246, 0.06);
-  --body-bg-gradient-2: rgba(245, 158, 11, 0.06);
+  --body-gradient:
+    radial-gradient(ellipse at 20% 0%, rgba(99, 102, 241, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(245, 158, 11, 0.06) 0%, transparent 50%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
-/* Theme transition */
+/* ============================================
+   TRANSITIONS & ANIMATIONS
+   ============================================ */
 * {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease,
+              border-color 0.3s ease,
+              color 0.2s ease,
+              box-shadow 0.3s ease,
+              transform 0.2s ease;
 }
 
+/* Smooth Page Transitions */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(245, 158, 11, 0.5);
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Animation Classes */
+.animate-fade-in-up {
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.4s ease-out forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.4s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Stagger Animation Delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+
+/* ============================================
+   BODY & BASE STYLES
+   ============================================ */
 body {
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
-  background-color: var(--bg-dark);
+  background: var(--body-gradient);
+  background-attachment: fixed;
   color: var(--text-primary);
   min-height: 100vh;
-  /* Premium Gradient Background */
-  background:
-    radial-gradient(circle at 15% 50%, var(--body-bg-gradient-1), transparent 25%),
-    radial-gradient(circle at 85% 30%, var(--body-bg-gradient-2), transparent 25%),
-    var(--body-bg);
-  background-attachment: fixed;
   overflow-x: hidden;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Light theme specific overrides */
-:root[data-theme="light"] .glass-panel {
-  background: var(--glass-panel-bg);
-  border-color: var(--glass-border);
-  box-shadow: var(--glass-shadow), 0 1px 2px rgba(0, 0, 0, 0.05);
+/* Headings - Premium Typography */
+h1, h2, h3, .font-serif {
+  font-family: 'Playfair Display', 'Outfit', serif;
+  letter-spacing: -0.02em;
 }
 
-:root[data-theme="light"] .glass-input {
-  background: var(--input-bg);
-  border-color: var(--input-border);
-  color: var(--input-text);
-}
-
-:root[data-theme="light"] .glass-input::placeholder {
-  color: rgba(100, 116, 139, 0.7);
-}
-
-:root[data-theme="light"] .glass-input:focus {
-  background: rgba(255, 255, 255, 1);
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
-}
-
-:root[data-theme="light"] .sidebar .glass-panel {
-  background: var(--sidebar-bg);
-  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.05);
-}
-
-:root[data-theme="light"] .login-container {
-  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
-}
-
-:root[data-theme="light"] .login-header h1 {
-  background: linear-gradient(135deg, #1e293b, #f59e0b);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-:root[data-theme="light"] select,
-:root[data-theme="light"] select option {
-  background: var(--input-bg);
-  color: var(--input-text);
-}
-
-:root[data-theme="light"] .text-white {
-  color: var(--text-primary) !important;
-}
-
-:root[data-theme="light"] .text-zinc-400,
-:root[data-theme="light"] .text-zinc-500 {
-  color: var(--text-secondary) !important;
-}
-
-:root[data-theme="light"] .bg-slate-800,
-:root[data-theme="light"] .bg-slate-800\/30,
-:root[data-theme="light"] .bg-slate-800\/50,
-:root[data-theme="light"] .bg-slate-900\/90 {
-  background-color: var(--glass-panel-bg) !important;
-}
-
-:root[data-theme="light"] .border-white\/5,
-:root[data-theme="light"] .border-white\/10 {
-  border-color: var(--glass-border) !important;
-}
-
-:root[data-theme="light"] .bg-white\/5,
-:root[data-theme="light"] .bg-white\/10,
-:root[data-theme="light"] .bg-black\/20 {
-  background-color: rgba(0, 0, 0, 0.04) !important;
-}
-
-:root[data-theme="light"] .hover\:bg-white\/5:hover,
-:root[data-theme="light"] .hover\:bg-white\/10:hover {
-  background-color: rgba(0, 0, 0, 0.06) !important;
-}
-
-
-
-/* Glass Utilities */
+/* ============================================
+   GLASS PANEL - Core Component
+   ============================================ */
 .glass-panel {
   background: var(--glass-panel-bg);
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--glass-border);
-  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(255, 255, 255, 0.05) inset;
-  border-radius: var(--radius-lg);
-  padding: 24px;
+  border-radius: var(--radius-xl);
+  box-shadow: var(--glass-shadow);
+  padding: var(--space-lg);
   position: relative;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .glass-panel::before {
@@ -212,23 +320,224 @@ body {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
 }
 
+.glass-panel:hover {
+  border-color: rgba(245, 158, 11, 0.15);
+  box-shadow: var(--glass-shadow), 0 0 0 1px rgba(245, 158, 11, 0.05);
+}
+
+/* Glass Card */
 .glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-md);
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--card-shadow);
+  padding: var(--space-md);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .glass-card:hover {
-  background: var(--glass-hover);
-  border-color: rgba(255, 255, 255, 0.15);
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border-color: var(--accent-gold);
+}
+
+/* ============================================
+   INPUT STYLES
+   ============================================ */
+.glass-input {
+  width: 100%;
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  color: var(--input-text);
+  font-size: 15px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.glass-input::placeholder {
+  color: var(--text-muted);
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: var(--accent-gold);
+  box-shadow: 0 0 0 3px var(--input-focus);
+  background: var(--bg-secondary);
+}
+
+.glass-input:hover:not(:focus) {
+  border-color: var(--text-muted);
+}
+
+/* Select styling */
+select.glass-input {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+select.glass-input option {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 12px;
+}
+
+/* ============================================
+   BUTTON STYLES
+   ============================================ */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--gradient-gold);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 14px 28px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(245, 158, 11, 0.35);
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.btn-primary:hover::before {
+  left: 100%;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.45);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--glass-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 12px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--glass-hover);
+  border-color: var(--accent-gold);
+  color: var(--accent-gold);
+}
+
+/* ============================================
+   SKILL BADGES - English Learning
+   ============================================ */
+.skill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.skill-badge.listening {
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--listening-color);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.skill-badge.reading {
+  background: rgba(59, 130, 246, 0.15);
+  color: var(--reading-color);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.skill-badge.writing {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--writing-color);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.skill-badge.speaking {
+  background: rgba(245, 158, 11, 0.15);
+  color: var(--speaking-color);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+/* ============================================
+   BAND SCORE DISPLAY
+   ============================================ */
+.band-score {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  font-size: 24px;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+}
+
+.band-score.excellent {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(5, 150, 105, 0.1));
+  color: var(--accent-emerald);
+  border: 2px solid var(--accent-emerald);
+}
+
+.band-score.good {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(37, 99, 235, 0.1));
+  color: var(--reading-color);
+  border: 2px solid var(--reading-color);
+}
+
+.band-score.average {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2), rgba(217, 119, 6, 0.1));
+  color: var(--accent-gold);
+  border: 2px solid var(--accent-gold);
+}
+
+.band-score.low {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2), rgba(220, 38, 38, 0.1));
+  color: var(--accent-ruby);
+  border: 2px solid var(--accent-ruby);
 }
 
 /* Login Page Styles */

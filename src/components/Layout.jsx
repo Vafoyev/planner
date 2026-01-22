@@ -98,7 +98,12 @@ const Layout = ({
           </div>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-            className="p-2 text-white bg-white/5 rounded-lg border border-white/10"
+            className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
+            style={{
+              background: 'var(--glass-hover)',
+              border: '1px solid var(--glass-border)',
+              color: 'var(--text-primary)'
+            }}
           >
             {isSidebarOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
@@ -108,7 +113,8 @@ const Layout = ({
       {/* Sidebar Overlay (Mobile) */}
       {isMobile && isSidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/80 z-40 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 z-40 transition-opacity"
+          style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -278,7 +284,7 @@ const Layout = ({
       </div>
 
       <main className="main-content flex-1 pt-20 lg:pt-0 pl-0 relative w-full overflow-x-hidden min-h-screen">
-        <div className="max-w-7xl mx-auto p-4 md:p-6 lg:p-8">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
           {children}
         </div>
       </main>
