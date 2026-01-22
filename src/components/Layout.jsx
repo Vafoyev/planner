@@ -3,7 +3,6 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import PersonIcon from '@mui/icons-material/Person';
 import SchoolIcon from '@mui/icons-material/School';
-import MenuBookIcon from '@mui/icons-material/MenuBook';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import GroupIcon from '@mui/icons-material/Group';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -124,14 +123,14 @@ const Layout = ({
           <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-amber-500/10 to-transparent pointer-events-none" />
 
           {/* Logo (Desktop) */}
-          <div className="logo-section p-4 md:p-6 border-b border-white/5 relative z-10 hidden lg:block">
+          <div className="logo-section p-4 md:p-6 border-b relative z-10 hidden lg:block" style={{ borderColor: 'var(--glass-border)' }}>
             <div className="flex items-center gap-3 mb-2">
               <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 text-white">
                 <EmojiEventsIcon sx={{ fontSize: 28 }} />
               </div>
-              <h1 className="text-xl font-serif font-bold text-white tracking-tight">English Study<br /><span className="text-amber-400">Academy</span></h1>
+              <h1 className="text-xl font-serif font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>English Study<br /><span className="text-amber-400">Academy</span></h1>
             </div>
-            <p className="text-xs text-zinc-400 uppercase tracking-widest pl-1">IELTS Learning Platform</p>
+            <p className="text-xs uppercase tracking-widest pl-1" style={{ color: 'var(--text-muted)' }}>IELTS Learning Platform</p>
           </div>
 
           {/* Mobile Menu Header */}
@@ -245,20 +244,24 @@ const Layout = ({
           </nav>
 
           {/* User Profile */}
-          <div className="p-4 border-t border-white/5 bg-black/20">
+          <div className="p-4 border-t" style={{ borderColor: 'var(--glass-border)', backgroundColor: 'var(--glass-hover)' }}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-full bg-slate-700 flex-shrink-0 flex items-center justify-center text-white ring-2 ring-white/10">
+                <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ring-2"
+                  style={{ backgroundColor: 'var(--glass-bg)', color: 'var(--text-primary)', ringColor: 'var(--glass-border)' }}>
                   {getRoleIcon()}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-white truncate">{user?.name || 'User'}</p>
+                  <p className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{user?.name || 'User'}</p>
                   <p className={`text-xs ${getRoleColor()} truncate`}>{getRoleName()}</p>
                 </div>
               </div>
               <button
                 onClick={toggleTheme}
-                className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-amber-400 transition-colors flex-shrink-0"
+                className="p-2 rounded-lg transition-colors flex-shrink-0"
+                style={{ color: 'var(--text-secondary)' }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--glass-hover)'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
               >
                 {theme === 'dark' ? <LightModeIcon sx={{ fontSize: 18 }} /> : <DarkModeIcon sx={{ fontSize: 18 }} />}
               </button>

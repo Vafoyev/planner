@@ -58,11 +58,11 @@ const DashboardHome = ({ userMode, user, students = [], tasks = {}, groups = [] 
             )}
           </div>
           <div>
-            <p className="text-zinc-400 text-xs md:text-sm uppercase tracking-wider mb-1">{getGreeting()}</p>
-            <h1 className="text-2xl md:text-3xl font-serif font-bold text-white mb-1">
+            <p className="text-xs md:text-sm uppercase tracking-wider mb-1" style={{ color: 'var(--text-secondary)' }}>{getGreeting()}</p>
+            <h1 className="text-2xl md:text-3xl font-serif font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
               {user?.name || 'User'}
             </h1>
-            <p className="text-zinc-400 text-sm md:text-base">
+            <p className="text-sm md:text-base" style={{ color: 'var(--text-secondary)' }}>
               {user?.role === 'headteacher' && 'Head Teacher • Full Access'}
               {user?.role === 'teacher' && 'Teacher • Group Management'}
               {user?.role === 'student' && 'Student • Learning Mode'}
@@ -146,30 +146,34 @@ const DashboardHome = ({ userMode, user, students = [], tasks = {}, groups = [] 
               <CalendarTodayIcon sx={{ fontSize: 20, color: '#f59e0b' }} />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Today's Schedule</h3>
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">{todayName}</p>
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Today's Schedule</h3>
+              <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{todayName}</p>
             </div>
           </div>
 
           {todayTasks.length === 0 ? (
             <div className="text-center py-8">
               <CheckCircleIcon sx={{ fontSize: 48, color: '#10b981', opacity: 0.5, mb: 2 }} />
-              <p className="text-zinc-400">No tasks scheduled for today</p>
+              <p style={{ color: 'var(--text-secondary)' }}>No tasks scheduled for today</p>
             </div>
           ) : (
             <div className="space-y-3">
               {todayTasks.slice(0, 4).map((task, index) => (
                 <div
                   key={task.id}
-                  className="flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-colors"
+                  className="flex items-center gap-4 p-4 rounded-xl border transition-colors"
+                  style={{
+                    backgroundColor: 'var(--glass-bg)',
+                    borderColor: 'var(--glass-border)'
+                  }}
                 >
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold">
                     {index + 1}
                   </div>
                   <div className="flex-1">
-                    <p className="text-white font-medium">{task.title}</p>
+                    <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{task.title}</p>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs text-zinc-500 flex items-center gap-1">
+                      <span className="text-xs flex items-center gap-1" style={{ color: 'var(--text-muted)' }}>
                         <AccessTimeIcon sx={{ fontSize: 12 }} />
                         {task.deadline || 'No deadline'}
                       </span>
@@ -181,7 +185,7 @@ const DashboardHome = ({ userMode, user, students = [], tasks = {}, groups = [] 
                 </div>
               ))}
               {todayTasks.length > 4 && (
-                <p className="text-center text-zinc-500 text-sm">
+                <p className="text-center text-sm" style={{ color: 'var(--text-muted)' }}>
                   +{todayTasks.length - 4} more tasks
                 </p>
               )}
@@ -196,8 +200,8 @@ const DashboardHome = ({ userMode, user, students = [], tasks = {}, groups = [] 
               <TrendingUpIcon sx={{ fontSize: 20, color: '#10b981' }} />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-white">Quick Actions</h3>
-              <p className="text-xs text-zinc-500 uppercase tracking-wider">Get started</p>
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>Quick Actions</h3>
+              <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>Get started</p>
             </div>
           </div>
 
@@ -262,9 +266,9 @@ const StatCard = ({ title, value, subtitle, icon: Icon, color }) => (
       <Icon sx={{ fontSize: 28, color }} />
     </div>
     <div>
-      <p className="text-3xl font-bold text-white">{value}</p>
-      <p className="text-xs text-zinc-500 uppercase tracking-wider">{title}</p>
-      {subtitle && <p className="text-xs text-zinc-600 mt-0.5">{subtitle}</p>}
+      <p className="text-3xl font-bold" style={{ color: 'var(--text-primary)' }}>{value}</p>
+      <p className="text-xs uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>{title}</p>
+      {subtitle && <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>}
     </div>
   </div>
 );
@@ -279,13 +283,24 @@ const ActionButton = ({ icon: Icon, title, description, color }) => {
   };
 
   return (
-    <button className="w-full flex items-center gap-4 p-4 bg-white/5 rounded-xl border border-white/5 hover:border-white/15 hover:bg-white/10 transition-all text-left group">
+    <button className="w-full flex items-center gap-4 p-4 rounded-xl border transition-all text-left group"
+      style={{
+        backgroundColor: 'var(--glass-bg)',
+        borderColor: 'var(--glass-border)'
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.backgroundColor = 'var(--glass-hover)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.backgroundColor = 'var(--glass-bg)';
+      }}
+    >
       <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${colors[color]} flex items-center justify-center text-white shadow-lg group-hover:scale-110 transition-transform`}>
         <Icon sx={{ fontSize: 24 }} />
       </div>
       <div>
-        <p className="text-white font-medium">{title}</p>
-        <p className="text-xs text-zinc-500">{description}</p>
+        <p className="font-medium" style={{ color: 'var(--text-primary)' }}>{title}</p>
+        <p className="text-xs" style={{ color: 'var(--text-muted)' }}>{description}</p>
       </div>
     </button>
   );
