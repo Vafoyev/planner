@@ -86,24 +86,34 @@ const Layout = ({
       : groups;
 
   return (
-    <div className="app-container flex min-h-screen relative">
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      width: '100%',
+      overflow: 'hidden'
+    }}>
       {/* Mobile Header */}
       {isMobile && (
-        <div className="fixed top-0 left-0 right-0 h-16 bg-slate-900/90 backdrop-blur-md border-b border-white/5 z-40 flex items-center justify-between px-4">
+        <div className="fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4"
+          style={{
+            height: '64px',
+            background: 'var(--glass-bg)',
+            backdropFilter: 'blur(20px)',
+            borderBottom: '1px solid var(--border-default)'
+          }}>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white">
-              <EmojiEventsIcon sx={{ fontSize: 16 }} />
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white" style={{ background: 'var(--gradient-primary)' }}>
+              <EmojiEventsIcon sx={{ fontSize: 20 }} />
             </div>
-            <span className="font-serif font-bold text-white text-lg">English Academy</span>
+            <div>
+              <span className="font-serif font-bold text-lg block" style={{ color: 'var(--text-default)' }}>English Academy</span>
+              <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-subtle)' }}>IELTS Platform</span>
+            </div>
           </div>
           <button
             onClick={() => setIsSidebarOpen(!isSidebarOpen)}
             className="w-10 h-10 rounded-xl flex items-center justify-center transition-all"
-            style={{
-              background: 'var(--glass-hover)',
-              border: '1px solid var(--glass-border)',
-              color: 'var(--text-primary)'
-            }}
+            style={{ background: 'var(--surface-default)', border: '1px solid var(--border-default)', color: 'var(--text-default)' }}
           >
             {isSidebarOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
@@ -119,90 +129,107 @@ const Layout = ({
         />
       )}
 
-      {/* Premium Sidebar */}
-      <div className={`
-        sidebar w-72 p-4 md:p-6 fixed lg:relative z-50 h-[100dvh] lg:h-screen transition-transform duration-300 ease-in-out
-        ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-      `}>
-        <div className="glass-panel h-full flex flex-col relative overflow-hidden shadow-2xl lg:shadow-none">
-          {/* Decorative Top Glow */}
-          <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-amber-500/10 to-transparent pointer-events-none" />
+      {/* Sidebar - Fixed position */}
+      {!isMobile && (
+        <aside style={{
+          width: '260px',
+          minWidth: '260px',
+          height: '100vh',
+          position: 'sticky',
+          top: 0,
+          left: 0,
+          flexShrink: 0,
+          background: 'var(--bg-base)',
+          borderRight: '1px solid var(--border-default)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}>
+          {/* Decorative Top Gradient */}
+          <div className="absolute top-0 left-0 right-0 h-24 pointer-events-none"
+            style={{ background: 'linear-gradient(180deg, rgba(59, 130, 246, 0.08) 0%, transparent 100%)' }} />
 
           {/* Logo (Desktop) */}
-          <div className="logo-section p-4 md:p-6 border-b relative z-10 hidden lg:block" style={{ borderColor: 'var(--glass-border)' }}>
+          <div className="p-5 relative z-10 hidden lg:block" style={{ borderBottom: '1px solid var(--border-default)' }}>
             <div className="flex items-center gap-3 mb-2">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30 text-white">
-                <EmojiEventsIcon sx={{ fontSize: 28 }} />
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center text-white shadow-lg"
+                style={{ background: 'var(--gradient-primary)', boxShadow: '0 8px 24px rgba(59, 130, 246, 0.3)' }}>
+                <EmojiEventsIcon sx={{ fontSize: 24 }} />
               </div>
-              <h1 className="text-xl font-serif font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>English Study<br /><span className="text-amber-400">Academy</span></h1>
+              <div>
+                <h1 className="text-base font-serif font-bold leading-tight" style={{ color: 'var(--text-default)' }}>
+                  English Study<br /><span style={{ color: 'var(--primary-400)' }}>Academy</span>
+                </h1>
+              </div>
             </div>
-            <p className="text-xs uppercase tracking-widest pl-1" style={{ color: 'var(--text-muted)' }}>IELTS Learning Platform</p>
+            <p className="text-[10px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-subtle)' }}>IELTS Learning Platform</p>
           </div>
 
           {/* Mobile Menu Header */}
-          <div className="lg:hidden p-4 border-b border-white/5 flex items-center justify-between">
-            <span className="text-zinc-400 text-sm font-medium">Menu</span>
-            <button onClick={() => setIsSidebarOpen(false)} className="text-zinc-400">
+          <div className="lg:hidden p-4 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-default)' }}>
+            <span className="text-sm font-semibold" style={{ color: 'var(--text-muted)' }}>Menu</span>
+            <button onClick={() => setIsSidebarOpen(false)} style={{ color: 'var(--text-subtle)' }}>
               <CloseIcon sx={{ fontSize: 20 }} />
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className="nav-menu flex-1 p-2 md:p-4 space-y-1.5 md:space-y-2 overflow-y-auto custom-scrollbar">
-            <p className="px-4 text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 mt-4">Main Menu</p>
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+            <style>{`.nav-scroll::-webkit-scrollbar { display: none; }`}</style>
+            <p className="px-3 text-[10px] font-bold uppercase tracking-widest mb-2 mt-1" style={{ color: 'var(--text-subtle)' }}>Main Menu</p>
 
             <button
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${currentView === 'dashboard' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-900/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+              className={`nav-item w-full ${currentView === 'dashboard' ? 'active' : ''}`}
               onClick={() => handleNavClick('dashboard')}
             >
-              <DashboardIcon sx={{ fontSize: 20 }} className={currentView === 'dashboard' ? 'text-amber-400' : 'text-zinc-500 group-hover:text-white'} />
-              <span className="font-medium">Dashboard</span>
+              <DashboardIcon sx={{ fontSize: 20 }} />
+              <span>Dashboard</span>
             </button>
 
             {userMode === 'teacher' && (
               <button
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${currentView === 'groups' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-900/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                className={`nav-item w-full ${currentView === 'groups' ? 'active' : ''}`}
                 onClick={() => handleNavClick('groups')}
               >
-                <FolderIcon sx={{ fontSize: 20 }} className={currentView === 'groups' ? 'text-amber-400' : 'text-zinc-500 group-hover:text-white'} />
-                <span className="font-medium">Groups</span>
-                <span className="ml-auto bg-white/10 text-xs px-2 py-0.5 rounded-full">{userGroups.length}</span>
+                <FolderIcon sx={{ fontSize: 20 }} />
+                <span>Groups</span>
+                <span className="nav-badge">{userGroups.length}</span>
               </button>
             )}
 
             <button
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${currentView === 'schedule' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-900/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+              className={`nav-item w-full ${currentView === 'schedule' ? 'active' : ''}`}
               onClick={() => handleNavClick('schedule')}
             >
-              <CalendarTodayIcon sx={{ fontSize: 20 }} className={currentView === 'schedule' ? 'text-amber-400' : 'text-zinc-500 group-hover:text-white'} />
-              <span className="font-medium">Tasks</span>
+              <CalendarTodayIcon sx={{ fontSize: 20 }} />
+              <span>Tasks</span>
             </button>
 
             {userMode === 'teacher' && (
               <button
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${currentView === 'students' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-900/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+                className={`nav-item w-full ${currentView === 'students' ? 'active' : ''}`}
                 onClick={() => handleNavClick('students')}
               >
-                <GroupIcon sx={{ fontSize: 20 }} className={currentView === 'students' ? 'text-amber-400' : 'text-zinc-500 group-hover:text-white'} />
-                <span className="font-medium">Students</span>
-                <span className="ml-auto bg-white/10 text-xs px-2 py-0.5 rounded-full">{students.length}</span>
+                <GroupIcon sx={{ fontSize: 20 }} />
+                <span>Students</span>
+                <span className="nav-badge">{students.length}</span>
               </button>
             )}
 
             <button
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 group ${currentView === 'statistics' ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-lg shadow-amber-900/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+              className={`nav-item w-full ${currentView === 'statistics' ? 'active' : ''}`}
               onClick={() => handleNavClick('statistics')}
             >
-              <TrendingUpIcon sx={{ fontSize: 20 }} className={currentView === 'statistics' ? 'text-amber-400' : 'text-zinc-500 group-hover:text-white'} />
-              <span className="font-medium">Statistics</span>
+              <TrendingUpIcon sx={{ fontSize: 20 }} />
+              <span>Statistics</span>
             </button>
 
             {/* Filter Selectors */}
             {(userMode === 'teacher' && (userGroups.length > 0 || students.length > 0)) && (
-              <div className="my-4 pt-4 border-t border-white/5 space-y-4">
+              <div className="my-4 pt-4 space-y-4" style={{ borderTop: '1px solid var(--border-default)' }}>
                 {userGroups.length > 0 && (
                   <div className="px-2">
-                    <p className="flex items-center gap-2 text-[10px] font-bold text-zinc-500 uppercase tracking-wider mb-2">
+                    <p className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider mb-2" style={{ color: 'var(--text-subtle)' }}>
                       <FolderIcon sx={{ fontSize: 12 }} />
                       Active Group
                     </p>
@@ -236,7 +263,7 @@ const Layout = ({
                         setSelectedStudent(student || null);
                         if (isMobile) setIsSidebarOpen(false);
                       }}
-                      className="w-full glass-input bg-slate-800 border-slate-700 text-xs py-2 h-10"
+                      className="w-full glass-input text-xs py-2 h-10"
                     >
                       <option value="">-- All Students --</option>
                       {students.map(student => (
@@ -250,41 +277,120 @@ const Layout = ({
           </nav>
 
           {/* User Profile */}
-          <div className="p-4 border-t" style={{ borderColor: 'var(--glass-border)', backgroundColor: 'var(--glass-hover)' }}>
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center ring-2"
-                  style={{ backgroundColor: 'var(--glass-bg)', color: 'var(--text-primary)', ringColor: 'var(--glass-border)' }}>
+          <div style={{
+            padding: '16px',
+            borderTop: '1px solid var(--border-default)',
+            background: 'var(--surface-default)',
+            marginTop: 'auto'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: 0 }}>
+                <div style={{
+                  width: '36px',
+                  height: '36px',
+                  borderRadius: '8px',
+                  background: 'var(--surface-raised)',
+                  border: '1px solid var(--border-default)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  flexShrink: 0
+                }}>
                   {getRoleIcon()}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate" style={{ color: 'var(--text-primary)' }}>{user?.name || 'User'}</p>
-                  <p className={`text-xs ${getRoleColor()} truncate`}>{getRoleName()}</p>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-default)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.name || 'User'}</p>
+                  <p className={getRoleColor()} style={{ fontSize: '12px' }}>{getRoleName()}</p>
                 </div>
               </div>
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-lg transition-colors flex-shrink-0"
-                style={{ color: 'var(--text-secondary)' }}
-                onMouseEnter={(e) => e.target.style.backgroundColor = 'var(--glass-hover)'}
-                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                style={{
+                  padding: '6px',
+                  borderRadius: '6px',
+                  background: 'transparent',
+                  border: 'none',
+                  color: 'var(--text-muted)',
+                  cursor: 'pointer'
+                }}
               >
                 {theme === 'dark' ? <LightModeIcon sx={{ fontSize: 18 }} /> : <DarkModeIcon sx={{ fontSize: 18 }} />}
               </button>
             </div>
             <button
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-colors text-sm font-medium border border-red-500/20"
+              className="btn btn-danger"
               onClick={onLogout}
+              style={{ width: '100%', padding: '10px', fontSize: '14px' }}
             >
               <LogoutIcon sx={{ fontSize: 16 }} />
               Sign Out
             </button>
           </div>
-        </div>
-      </div>
+        </aside>
+      )}
 
-      <main className="main-content flex-1 pt-20 lg:pt-0 pl-0 relative w-full overflow-x-hidden min-h-screen">
-        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+      {/* Mobile Sidebar */}
+      {isMobile && isSidebarOpen && (
+        <aside style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '280px',
+          height: '100vh',
+          background: 'var(--bg-base)',
+          borderRight: '1px solid var(--border-default)',
+          zIndex: 50,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          animation: 'slideIn 0.2s ease'
+        }}>
+          {/* Mobile menu header */}
+          <div style={{ padding: '16px', borderBottom: '1px solid var(--border-default)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-muted)' }}>Menu</span>
+            <button onClick={() => setIsSidebarOpen(false)} style={{ color: 'var(--text-subtle)', background: 'none', border: 'none', cursor: 'pointer' }}>
+              <CloseIcon sx={{ fontSize: 20 }} />
+            </button>
+          </div>
+
+          {/* Navigation */}
+          <nav style={{ flex: 1, padding: '12px', display: 'flex', flexDirection: 'column', gap: '4px', overflowY: 'auto' }}>
+            <button className={`nav-item w-full ${currentView === 'dashboard' ? 'active' : ''}`} onClick={() => handleNavClick('dashboard')}>
+              <DashboardIcon sx={{ fontSize: 20 }} /> <span>Dashboard</span>
+            </button>
+            {userMode === 'teacher' && (
+              <button className={`nav-item w-full ${currentView === 'groups' ? 'active' : ''}`} onClick={() => handleNavClick('groups')}>
+                <FolderIcon sx={{ fontSize: 20 }} /> <span>Groups</span>
+              </button>
+            )}
+            <button className={`nav-item w-full ${currentView === 'schedule' ? 'active' : ''}`} onClick={() => handleNavClick('schedule')}>
+              <CalendarTodayIcon sx={{ fontSize: 20 }} /> <span>Tasks</span>
+            </button>
+            {userMode === 'teacher' && (
+              <button className={`nav-item w-full ${currentView === 'students' ? 'active' : ''}`} onClick={() => handleNavClick('students')}>
+                <GroupIcon sx={{ fontSize: 20 }} /> <span>Students</span>
+              </button>
+            )}
+            <button className={`nav-item w-full ${currentView === 'statistics' ? 'active' : ''}`} onClick={() => handleNavClick('statistics')}>
+              <TrendingUpIcon sx={{ fontSize: 20 }} /> <span>Statistics</span>
+            </button>
+          </nav>
+        </aside>
+      )}
+
+      {/* Main Content */}
+      <main style={{
+        flex: 1,
+        height: '100vh',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        paddingTop: isMobile ? '64px' : 0
+      }}>
+        <div style={{
+          padding: isMobile ? '16px' : '24px',
+          width: '100%'
+        }}>
           {children}
         </div>
       </main>

@@ -12,18 +12,16 @@ import {
     Legend,
     Filler
 } from 'chart.js';
-import { Bar, Line, Pie, Doughnut, Scatter } from 'react-chartjs-2';
-import { format, parseISO } from 'date-fns';
-import DashboardIcon from '@mui/icons-material/Dashboard';
+import { Bar, Doughnut } from 'react-chartjs-2';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AssessmentIcon from '@mui/icons-material/Assessment';
-import AssignmentIcon from '@mui/icons-material/Assignment';
 import StarIcon from '@mui/icons-material/Star';
-import TimelineIcon from '@mui/icons-material/Timeline';
-import FilterListIcon from '@mui/icons-material/FilterList';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
+import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PendingIcon from '@mui/icons-material/Pending';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 
 // Register ChartJS
 ChartJS.register(
@@ -39,13 +37,22 @@ ChartJS.register(
     Filler
 );
 
+// Theme
+const THEME = {
+    primary: '#288FB2',
+    primaryDark: '#1C5570',
+    accent: '#F2D5A9',
+    warning: '#FA3404',
+    success: '#34D399',
+    gradient: 'linear-gradient(135deg, #1C5570 0%, #288FB2 100%)'
+};
+
 const SKILLS = [
-    { name: 'Listening', key: 'Listening', color: '#3b82f6', day: 'Monday' },
-    { name: 'Reading', key: 'Reading', color: '#10b981', day: 'Tuesday' },
-    { name: 'Writing', key: 'Writing', color: '#f59e0b', day: 'Wednesday' },
-    { name: 'Speaking', key: 'Speaking', color: '#ef4444', day: 'Thursday' },
-    { name: 'Mock Test', key: 'MockTest', color: '#8b5cf6', day: 'Friday' },
-    { name: 'Review', key: 'Review', color: '#ec4899', day: 'Sunday' },
+    { name: 'Listening', color: '#288FB2', day: 'Monday' },
+    { name: 'Reading', color: '#1C5570', day: 'Tuesday' },
+    { name: 'Writing', color: '#34D399', day: 'Wednesday' },
+    { name: 'Speaking', color: '#FA3404', day: 'Thursday' },
+    { name: 'Mock Test', color: '#8B5CF6', day: 'Friday' },
 ];
 
 const calculateBandScore = (percentage) => {
@@ -60,554 +67,787 @@ const calculateBandScore = (percentage) => {
     if (percentage >= 40) return 5.0;
     if (percentage >= 33) return 4.5;
     if (percentage >= 27) return 4.0;
-    if (percentage >= 20) return 3.5;
-    if (percentage >= 13) return 3.0;
-    return 0;
+    return 3.5;
 };
-
-// Summary Card Component
-const SummaryCard = ({ title, value, subtitle, icon: Icon, color }) => (
-    <div className="glass-panel p-6 flex items-center gap-4">
-        <div className="w-14 h-14 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${color}20` }}>
-            <Icon sx={{ fontSize: 24, color }} />
-        </div>
-        <div>
-            <p className="text-xs text-zinc-500 uppercase tracking-wider">{title}</p>
-            <h3 className="text-2xl font-bold text-white">{value}</h3>
-            {subtitle && <p className="text-xs text-zinc-600 mt-0.5">{subtitle}</p>}
-        </div>
-    </div>
-);
 
 const StatsDashboard = ({
     students = [],
-    selectedStudent,
     tasks = {},
     groups = [],
-    selectedGroup,
-    userMode,
-    user
+    user,
+    appData,
+    userMode
 }) => {
-    const [filterGroup, setFilterGroup] = useState(selectedGroup?.id || '');
-    const [filterStudent, setFilterStudent] = useState(selectedStudent?.id || '');
-    const [timePeriod, setTimePeriod] = useState('overall');
+    const [filterGroupId, setFilterGroupId] = useState('');
+    const [activeTab, setActiveTab] = useState('overview');
 
-    // Filter students by group
+    // Check if current user is a student
+    const isStudent = user?.role === 'student' || userMode === 'student';
+
+    // Get user's groups
+    const userGroups = useMemo(() => {
+        if (user?.role === 'headteacher') return groups;
+        if (user?.role === 'teacher') return groups.filter(g => g.teacherId === user?.id);
+        if (isStudent) {
+            // Student only sees their own group
+            return groups.filter(g => g.studentIds?.includes(user?.id));
+        }
+        return groups;
+    }, [groups, user, isStudent]);
+
+    // Get student's group members (for student view)
+    const studentGroupMembers = useMemo(() => {
+        if (!isStudent) return [];
+        const studentGroup = groups.find(g => g.studentIds?.includes(user?.id));
+        if (!studentGroup) return [];
+        return students.filter(s => studentGroup.studentIds?.includes(s.id));
+    }, [isStudent, groups, students, user]);
+
+    // Get all tasks as array
+    const allTasks = useMemo(() => {
+        const tasksArray = [];
+        Object.entries(tasks).forEach(([day, dayTasks]) => {
+            (dayTasks || []).forEach(task => {
+                tasksArray.push({ ...task, day });
+            });
+        });
+        return tasksArray;
+    }, [tasks]);
+
+    // Get score helper - must be useCallback
+    const getScore = useCallback((studentId, taskId) => {
+        return appData?.scores?.[`${studentId}_${taskId}`] || 0;
+    }, [appData]);
+
+    // Get students for selected group (or student's group members for student view)
     const filteredStudents = useMemo(() => {
-        if (filterGroup) {
-            const group = groups.find(g => g.id === Number(filterGroup));
-            return students.filter(s => group?.studentIds?.includes(s.id));
+        // If student, only show their group members
+        if (isStudent) {
+            return studentGroupMembers;
         }
-        return students;
-    }, [students, groups, filterGroup]);
-
-    // Get current student for stats
-    const currentStudent = useMemo(() => {
-        if (filterStudent) {
-            return students.find(s => s.id === Number(filterStudent));
-        }
-        return selectedStudent;
-    }, [filterStudent, selectedStudent, students]);
+        // For teachers/headteachers
+        if (!filterGroupId) return students;
+        const group = groups.find(g => g.id === parseInt(filterGroupId));
+        if (!group) return students;
+        return students.filter(s => group.studentIds?.includes(s.id));
+    }, [filterGroupId, groups, students, isStudent, studentGroupMembers]);
 
     // Calculate student stats
     const getStudentStats = useCallback((student) => {
-        if (!student) return null;
-
         let totalScore = 0;
-        let totalMax = 0;
-        let skillScores = {};
-        let progressData = [];
-        let progressLabels = [];
+        let maxScore = 0;
         let completedTasks = 0;
-        let totalTasks = 0;
+        const skillScores = {};
 
         SKILLS.forEach(skill => {
-            skillScores[skill.key] = { score: 0, max: 0 };
+            skillScores[skill.name] = { score: 0, max: 0, count: 0 };
         });
 
-        const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-        days.forEach(day => {
-            const dayTasks = tasks[day] || [];
-            const skill = SKILLS.find(s => s.day === day);
+        allTasks.forEach(task => {
+            const score = getScore(student.id, task.id);
+            const taskMax = task.maxScore || 40;
+            const skill = SKILLS.find(s => s.day === task.day);
 
-            dayTasks.forEach(task => {
-                totalTasks++;
-                const score = student.scores?.[task.id] || 0;
-                const max = task.maxScore || 40;
-
-                if (score > 0) {
-                    completedTasks++;
-                    totalScore += score;
-                    totalMax += max;
-
-                    if (skill) {
-                        skillScores[skill.key].score += score;
-                        skillScores[skill.key].max += max;
-                    }
-
-                    const pct = (score / max) * 100;
-                    progressData.push(calculateBandScore(pct));
-                    const taskDate = task.date ? format(parseISO(task.date), 'MMM d') : day.substring(0, 3);
-                    progressLabels.push(taskDate);
+            maxScore += taskMax;
+            if (score > 0) {
+                totalScore += score;
+                completedTasks++;
+                if (skill) {
+                    skillScores[skill.name].score += score;
+                    skillScores[skill.name].max += taskMax;
+                    skillScores[skill.name].count++;
                 }
-            });
+            }
         });
 
-        // Calculate skill bands
+        const percentage = maxScore > 0 ? (totalScore / maxScore) * 100 : 0;
+        const band = calculateBandScore(percentage);
+
         const skillBands = SKILLS.map(s => {
-            const data = skillScores[s.key];
+            const data = skillScores[s.name];
             if (!data || data.max === 0) return 0;
             return calculateBandScore((data.score / data.max) * 100);
         });
 
-        const overallPct = totalMax > 0 ? (totalScore / totalMax) * 100 : 0;
-        const overallBand = calculateBandScore(overallPct);
+        return {
+            band,
+            percentage,
+            totalScore,
+            maxScore,
+            completedTasks,
+            pendingTasks: allTasks.length - completedTasks,
+            skillBands,
+            skillScores
+        };
+    }, [allTasks, getScore]);
+
+    // Get all students stats
+    const studentsWithStats = useMemo(() => {
+        return filteredStudents.map(student => ({
+            ...student,
+            stats: getStudentStats(student)
+        })).sort((a, b) => b.stats.band - a.stats.band);
+    }, [filteredStudents, getStudentStats]);
+
+    // Current student's stats (for student view)
+    const currentStudentStats = useMemo(() => {
+        if (!isStudent || !user) return null;
+        const currentStudent = students.find(s => s.id === user.id);
+        if (!currentStudent) return null;
+        return {
+            ...currentStudent,
+            stats: getStudentStats(currentStudent)
+        };
+    }, [isStudent, user, students, getStudentStats]);
+
+    // Get student's rank in their group
+    const studentRank = useMemo(() => {
+        if (!isStudent || !currentStudentStats) return 0;
+        const rankIndex = studentsWithStats.findIndex(s => s.id === user?.id);
+        return rankIndex >= 0 ? rankIndex + 1 : 0;
+    }, [isStudent, currentStudentStats, studentsWithStats, user]);
+
+    // Overall stats
+    const overallStats = useMemo(() => {
+        if (studentsWithStats.length === 0) {
+            return { avgBand: 0, totalCompleted: 0, totalPending: 0, topStudent: null };
+        }
+
+        const avgBand = studentsWithStats.reduce((sum, s) => sum + s.stats.band, 0) / studentsWithStats.length;
+        const totalCompleted = studentsWithStats.reduce((sum, s) => sum + s.stats.completedTasks, 0);
+        const totalPending = studentsWithStats.reduce((sum, s) => sum + s.stats.pendingTasks, 0);
+        const topStudent = studentsWithStats[0];
+
+        return { avgBand, totalCompleted, totalPending, topStudent };
+    }, [studentsWithStats]);
+
+    // Skill comparison data
+    const skillComparisonData = useMemo(() => {
+        if (studentsWithStats.length === 0) return { labels: [], data: [] };
+
+        const avgSkillBands = SKILLS.map((_, index) => {
+            const sum = studentsWithStats.reduce((acc, s) => acc + s.stats.skillBands[index], 0);
+            return studentsWithStats.length > 0 ? sum / studentsWithStats.length : 0;
+        });
 
         return {
-            overallBand,
-            skillBands,
-            progressData,
-            progressLabels,
-            completedTasks,
-            totalTasks,
-            participation: totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0,
-            totalScore,
-            totalMax
+            labels: SKILLS.map(s => s.name),
+            datasets: [{
+                label: 'Average Band',
+                data: avgSkillBands,
+                backgroundColor: SKILLS.map(s => s.color + '80'),
+                borderColor: SKILLS.map(s => s.color),
+                borderWidth: 2,
+                borderRadius: 8
+            }]
         };
-    }, [tasks]);
+    }, [studentsWithStats]);
 
-    const currentStats = useMemo(() => {
-        return currentStudent
-            ? getStudentStats(currentStudent)
-            : { overallBand: 0, skillBands: [0, 0, 0, 0, 0, 0], progressData: [], participation: 0, completedTasks: 0, totalTasks: 0 };
-    }, [currentStudent, getStudentStats]);
 
-    // Chart Options
-    const chartOptions = {
+    // Completion donut data
+    const completionData = useMemo(() => {
+        return {
+            labels: ['Completed', 'Pending'],
+            datasets: [{
+                data: [overallStats.totalCompleted, overallStats.totalPending],
+                backgroundColor: [THEME.success, THEME.warning + '60'],
+                borderWidth: 0
+            }]
+        };
+    }, [overallStats]);
+
+    // Chart options
+    const barOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: { display: false },
-            tooltip: {
-                backgroundColor: 'rgba(23, 23, 23, 0.95)',
-                titleColor: '#fff',
-                bodyColor: '#a1a1aa',
-                borderColor: 'rgba(255,255,255,0.1)',
-                borderWidth: 1,
-                padding: 12,
-            }
+            legend: { display: false }
         },
         scales: {
             y: {
                 beginAtZero: true,
                 max: 9,
                 grid: { color: 'rgba(255,255,255,0.05)' },
-                ticks: { color: '#71717a' }
+                ticks: { color: 'var(--text-muted)' }
             },
             x: {
                 grid: { display: false },
-                ticks: { color: '#a1a1aa' }
+                ticks: { color: 'var(--text-muted)' }
             }
         }
     };
 
-    // Bar Chart Data
-    const barChartData = {
-        labels: SKILLS.map(s => s.name),
-        datasets: [{
-            data: currentStats.skillBands,
-            backgroundColor: SKILLS.map(s => s.color + 'CC'),
-            borderRadius: 6,
-            barThickness: 30,
-        }]
+    const donutOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        },
+        cutout: '70%'
     };
-
-    // Line Chart Data
-    const lineChartData = {
-        labels: currentStats.progressLabels,
-        datasets: [{
-            data: currentStats.progressData,
-            fill: true,
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
-            tension: 0.4,
-            pointBackgroundColor: '#09090b',
-            pointBorderColor: '#f59e0b',
-            pointBorderWidth: 2,
-            pointRadius: 4,
-        }]
-    };
-
-    // Pie Chart Data - Task Distribution
-    const pieChartData = {
-        labels: SKILLS.map(s => s.name),
-        datasets: [{
-            data: SKILLS.map(s => (tasks[s.day] || []).length),
-            backgroundColor: SKILLS.map(s => s.color + 'CC'),
-            borderColor: SKILLS.map(s => s.color),
-            borderWidth: 2,
-        }]
-    };
-
-    // Doughnut Chart Data - Completion Status
-    const doughnutChartData = {
-        labels: ['Completed', 'Pending'],
-        datasets: [{
-            data: [
-                currentStats.completedTasks,
-                Math.max(0, currentStats.totalTasks - currentStats.completedTasks)
-            ],
-            backgroundColor: ['rgba(16, 185, 129, 0.8)', 'rgba(245, 158, 11, 0.8)'],
-            borderColor: ['rgba(16, 185, 129, 1)', 'rgba(245, 158, 11, 1)'],
-            borderWidth: 2,
-        }]
-    };
-
-    // Class Comparison Data (for teachers)
-    const classComparisonData = useMemo(() => {
-        if (userMode !== 'teacher' || filteredStudents.length === 0) return null;
-
-        const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#6366f1', '#14b8a6'];
-
-        return {
-            labels: filteredStudents.map(s => s.name),
-            datasets: [{
-                label: 'Overall Band',
-                data: filteredStudents.map(s => getStudentStats(s)?.overallBand || 0),
-                backgroundColor: colors.slice(0, filteredStudents.length).map(c => c + '80'),
-                borderColor: colors.slice(0, filteredStudents.length),
-                borderWidth: 2,
-                borderRadius: 8,
-            }]
-        };
-    }, [filteredStudents, userMode, getStudentStats]);
-
-    // Teacher Groups Filter
-    const teacherGroups = userMode === 'teacher'
-        ? (user?.role === 'headteacher' ? groups : groups.filter(g => g.teacherId === user?.id))
-        : [];
 
     return (
-        <div className="stats-dashboard">
+        <div style={{ width: '100%' }}>
             {/* Header */}
-            <header className="page-glass-header mb-6 md:mb-8 flex-col md:flex-row gap-4 justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="header-icon-glass">
-                        <AssessmentIcon sx={{ fontSize: 28, color: '#f59e0b' }} />
-                    </div>
-                    <div>
-                        <h2 className="text-xl md:text-2xl font-serif text-white">Statistics Dashboard</h2>
-                        <p className="text-xs md:text-sm text-zinc-400 font-sans">Performance analytics and insights</p>
-                    </div>
-                </div>
-
-                {/* Filters */}
-                {userMode === 'teacher' && (
-                    <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-4 w-full md:w-auto">
-                        {/* Group Filter */}
-                        <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg p-1 border border-white/5 w-full md:w-auto">
-                            <div className="p-1.5 rounded-md bg-indigo-500/20">
-                                <GroupIcon sx={{ fontSize: 16, color: '#818cf8' }} />
-                            </div>
-                            <select
-                                value={filterGroup}
-                                onChange={(e) => {
-                                    setFilterGroup(e.target.value);
-                                    setFilterStudent('');
-                                }}
-                                className="bg-transparent text-white text-xs md:text-sm py-1.5 focus:outline-none w-full md:min-w-[140px]"
-                            >
-                                <option value="" className="text-slate-900">All Groups</option>
-                                {teacherGroups.map(g => (
-                                    <option key={g.id} value={g.id} className="text-slate-900">{g.name}</option>
-                                ))}
-                            </select>
+            <header style={{
+                background: 'var(--glass-bg)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid var(--glass-border)',
+                borderRadius: '16px',
+                padding: '20px 24px',
+                marginBottom: '20px'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <div style={{
+                            width: '48px',
+                            height: '48px',
+                            borderRadius: '14px',
+                            background: THEME.gradient,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                        }}>
+                            <AssessmentIcon sx={{ fontSize: 24, color: 'white' }} />
                         </div>
-
-                        {/* Student Filter */}
-                        <div className="flex items-center gap-2 bg-slate-800/50 rounded-lg p-1 border border-white/5 w-full md:w-auto">
-                            <div className="p-1.5 rounded-md bg-emerald-500/20">
-                                <PersonIcon sx={{ fontSize: 16, color: '#34d399' }} />
-                            </div>
-                            <select
-                                value={filterStudent}
-                                onChange={(e) => setFilterStudent(e.target.value)}
-                                className="bg-transparent text-white text-xs md:text-sm py-1.5 focus:outline-none w-full md:min-w-[140px]"
-                            >
-                                <option value="" className="text-slate-900">All Students</option>
-                                {filteredStudents.map(s => (
-                                    <option key={s.id} value={s.id} className="text-slate-900">{s.name}</option>
-                                ))}
-                            </select>
+                        <div>
+                            <h2 style={{ fontSize: '22px', fontWeight: 700, color: 'var(--text-default)', marginBottom: '4px' }}>
+                                {isStudent ? 'My Statistics' : 'Statistics & Analytics'}
+                            </h2>
+                            <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                                {isStudent
+                                    ? 'Your performance and comparison with group members'
+                                    : 'Performance insights and comparisons'
+                                }
+                            </p>
                         </div>
                     </div>
-                )}
-            </header>
 
-            {/* Class Overview (Teacher - No specific student selected) */}
-            {userMode === 'teacher' && !currentStudent && filteredStudents.length > 0 && (
-                <>
-                    {/* Class Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <SummaryCard
-                            title="Total Students"
-                            value={filteredStudents.length}
-                            subtitle={filterGroup ? 'In selected group' : 'All groups'}
-                            icon={GroupIcon}
-                            color="#8b5cf6"
-                        />
-                        <SummaryCard
-                            title="Avg. Band Score"
-                            value={
-                                filteredStudents.length > 0
-                                    ? (filteredStudents.reduce((acc, s) => acc + (getStudentStats(s)?.overallBand || 0), 0) / filteredStudents.length).toFixed(1)
-                                    : '—'
-                            }
-                            subtitle="Class average"
-                            icon={StarIcon}
-                            color="#f59e0b"
-                        />
-                        <SummaryCard
-                            title="Total Tasks"
-                            value={Object.values(tasks).flat().length}
-                            subtitle="This period"
-                            icon={AssignmentIcon}
-                            color="#3b82f6"
-                        />
-                        <SummaryCard
-                            title="Avg. Participation"
-                            value={
-                                filteredStudents.length > 0
-                                    ? Math.round(filteredStudents.reduce((acc, s) => acc + (getStudentStats(s)?.participation || 0), 0) / filteredStudents.length) + '%'
-                                    : '—'
-                            }
-                            subtitle="Task completion"
-                            icon={TrendingUpIcon}
-                            color="#10b981"
-                        />
-                    </div>
-
-                    {/* Class Comparison Chart */}
-                    <div className="glass-panel p-8 mb-8 border-indigo-500/20 border-2 relative overflow-hidden">
-                        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500/50 to-transparent"></div>
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="w-12 h-12 rounded-xl bg-indigo-500/20 flex items-center justify-center">
-                                <AssessmentIcon sx={{ fontSize: 24, color: '#818cf8' }} />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-semibold text-white">Student Comparison</h3>
-                                <p className="text-xs text-zinc-400 uppercase tracking-wider">Band scores by student</p>
-                            </div>
-                        </div>
-                        <div className="h-[300px]">
-                            {classComparisonData && classComparisonData.labels.length > 0 ? (
-                                <Bar data={classComparisonData} options={{
-                                    ...chartOptions,
-                                    indexAxis: filteredStudents.length > 5 ? 'y' : 'x',
-                                    scales: {
-                                        ...chartOptions.scales,
-                                        x: { ...chartOptions.scales.x, max: 9 }
-                                    }
-                                }} />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-zinc-500">
-                                    No data available
-                                </div>
+                    {/* Filters - only for teachers/headteachers */}
+                    {!isStudent && (
+                        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                            {userGroups.length > 0 && (
+                                <select
+                                    value={filterGroupId}
+                                    onChange={(e) => setFilterGroupId(e.target.value)}
+                                    style={{
+                                        padding: '10px 16px',
+                                        borderRadius: '10px',
+                                        border: filterGroupId ? `2px solid ${THEME.primary}` : '1px solid var(--border-default)',
+                                        background: 'var(--surface-default)',
+                                        color: 'var(--text-default)',
+                                        fontSize: '14px',
+                                        minWidth: '160px'
+                                    }}
+                                >
+                                    <option value="">All Groups</option>
+                                    {userGroups.map(g => (
+                                        <option key={g.id} value={g.id}>{g.name}</option>
+                                    ))}
+                                </select>
                             )}
                         </div>
+                    )}
+                </div>
+            </header>
+
+            {/* Student's Personal Stats Card */}
+            {isStudent && currentStudentStats && (
+                <div style={{
+                    background: THEME.gradient,
+                    borderRadius: '16px',
+                    padding: '24px',
+                    marginBottom: '20px',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'center',
+                    gap: '24px'
+                }}>
+                    {/* Avatar */}
+                    <div style={{
+                        width: '80px',
+                        height: '80px',
+                        borderRadius: '50%',
+                        background: 'rgba(255,255,255,0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '32px',
+                        fontWeight: 700,
+                        color: 'white'
+                    }}>
+                        {currentStudentStats.name?.charAt(0).toUpperCase()}
                     </div>
 
-                    {/* Student Cards Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredStudents.map(student => {
-                            const stats = getStudentStats(student);
-                            return (
+                    {/* Name & Band */}
+                    <div style={{ flex: 1, minWidth: '200px' }}>
+                        <h3 style={{ fontSize: '24px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>
+                            {currentStudentStats.name}
+                        </h3>
+                        <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>
+                            Rank #{studentRank} in your group
+                        </p>
+                    </div>
+
+                    {/* Stats */}
+                    <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                        <div style={{
+                            padding: '16px 24px',
+                            background: 'rgba(255,255,255,0.15)',
+                            borderRadius: '14px',
+                            textAlign: 'center'
+                        }}>
+                            <p style={{ fontSize: '28px', fontWeight: 800, color: 'white' }}>
+                                {currentStudentStats.stats.band.toFixed(1)}
+                            </p>
+                            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>Band Score</p>
+                        </div>
+                        <div style={{
+                            padding: '16px 24px',
+                            background: 'rgba(255,255,255,0.15)',
+                            borderRadius: '14px',
+                            textAlign: 'center'
+                        }}>
+                            <p style={{ fontSize: '28px', fontWeight: 800, color: '#34D399' }}>
+                                {currentStudentStats.stats.completedTasks}
+                            </p>
+                            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>Completed</p>
+                        </div>
+                        <div style={{
+                            padding: '16px 24px',
+                            background: 'rgba(255,255,255,0.15)',
+                            borderRadius: '14px',
+                            textAlign: 'center'
+                        }}>
+                            <p style={{ fontSize: '28px', fontWeight: 800, color: '#FBBF24' }}>
+                                {currentStudentStats.stats.pendingTasks}
+                            </p>
+                            <p style={{ fontSize: '11px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase' }}>Pending</p>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Tabs */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+                {[
+                    { id: 'overview', label: 'Overview', icon: TrendingUpIcon },
+                    { id: 'rankings', label: isStudent ? 'Group Ranking' : 'Rankings', icon: EmojiEventsIcon },
+                    // Compare tab only for teachers/headteachers
+                    ...(!isStudent ? [{ id: 'compare', label: 'Compare', icon: CompareArrowsIcon }] : [])
+                ].map(tab => (
+                    <button
+                        key={tab.id}
+                        onClick={() => setActiveTab(tab.id)}
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            padding: '12px 20px',
+                            borderRadius: '12px',
+                            border: activeTab === tab.id ? `2px solid ${THEME.primary}` : '1px solid var(--border-default)',
+                            background: activeTab === tab.id ? `${THEME.primary}15` : 'var(--surface-default)',
+                            color: activeTab === tab.id ? THEME.primary : 'var(--text-muted)',
+                            fontSize: '14px',
+                            fontWeight: 600,
+                            cursor: 'pointer'
+                        }}
+                    >
+                        <tab.icon sx={{ fontSize: 18 }} />
+                        {tab.label}
+                    </button>
+                ))}
+            </div>
+
+            {/* Overview Tab */}
+            {activeTab === 'overview' && (
+                <>
+                    {/* Stats Cards - Responsive */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                        gap: '12px',
+                        marginBottom: '20px'
+                    }}>
+                        <div style={{
+                            background: 'var(--glass-bg)',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            textAlign: 'center'
+                        }}>
+                            <div style={{
+                                width: '56px',
+                                height: '56px',
+                                borderRadius: '14px',
+                                background: `${THEME.primary}20`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 16px'
+                            }}>
+                                <StarIcon sx={{ fontSize: 28, color: THEME.primary }} />
+                            </div>
+                            <p style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-default)', marginBottom: '4px' }}>
+                                {overallStats.avgBand.toFixed(1)}
+                            </p>
+                            <p style={{ fontSize: '12px', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Avg Band Score</p>
+                        </div>
+
+                        <div style={{
+                            background: 'var(--glass-bg)',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            textAlign: 'center'
+                        }}>
+                            <div style={{
+                                width: '56px',
+                                height: '56px',
+                                borderRadius: '14px',
+                                background: `${THEME.success}20`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 16px'
+                            }}>
+                                <CheckCircleIcon sx={{ fontSize: 28, color: THEME.success }} />
+                            </div>
+                            <p style={{ fontSize: '32px', fontWeight: 700, color: THEME.success, marginBottom: '4px' }}>
+                                {overallStats.totalCompleted}
+                            </p>
+                            <p style={{ fontSize: '12px', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Completed Tasks</p>
+                        </div>
+
+                        <div style={{
+                            background: 'var(--glass-bg)',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            textAlign: 'center'
+                        }}>
+                            <div style={{
+                                width: '56px',
+                                height: '56px',
+                                borderRadius: '14px',
+                                background: `${THEME.warning}20`,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 16px'
+                            }}>
+                                <PendingIcon sx={{ fontSize: 28, color: THEME.warning }} />
+                            </div>
+                            <p style={{ fontSize: '32px', fontWeight: 700, color: THEME.warning, marginBottom: '4px' }}>
+                                {overallStats.totalPending}
+                            </p>
+                            <p style={{ fontSize: '12px', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Pending Tasks</p>
+                        </div>
+
+                        <div style={{
+                            background: 'var(--glass-bg)',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '16px',
+                            padding: '24px',
+                            textAlign: 'center'
+                        }}>
+                            <div style={{
+                                width: '56px',
+                                height: '56px',
+                                borderRadius: '14px',
+                                background: '#8B5CF620',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                margin: '0 auto 16px'
+                            }}>
+                                <PersonIcon sx={{ fontSize: 28, color: '#8B5CF6' }} />
+                            </div>
+                            <p style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-default)', marginBottom: '4px' }}>
+                                {filteredStudents.length}
+                            </p>
+                            <p style={{ fontSize: '12px', color: 'var(--text-subtle)', textTransform: 'uppercase' }}>Students</p>
+                        </div>
+                    </div>
+
+                    {/* Charts Row - Responsive */}
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                        gap: '16px',
+                        marginBottom: '20px'
+                    }}>
+                        {/* Skill Performance */}
+                        <div style={{
+                            background: 'var(--glass-bg)',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '16px',
+                            padding: '24px'
+                        }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-default)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <TrendingUpIcon sx={{ fontSize: 20, color: THEME.primary }} />
+                                Skill Performance (Average)
+                            </h3>
+                            <div style={{ height: '280px' }}>
+                                <Bar data={skillComparisonData} options={barOptions} />
+                            </div>
+                        </div>
+
+                        {/* Completion Rate */}
+                        <div style={{
+                            background: 'var(--glass-bg)',
+                            border: '1px solid var(--glass-border)',
+                            borderRadius: '16px',
+                            padding: '24px'
+                        }}>
+                            <h3 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-default)', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                <CheckCircleIcon sx={{ fontSize: 20, color: THEME.success }} />
+                                Task Completion
+                            </h3>
+                            <div style={{ height: '200px', position: 'relative' }}>
+                                <Doughnut data={completionData} options={donutOptions} />
+                                <div style={{
+                                    position: 'absolute',
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)',
+                                    textAlign: 'center'
+                                }}>
+                                    <p style={{ fontSize: '28px', fontWeight: 700, color: 'var(--text-default)' }}>
+                                        {overallStats.totalCompleted + overallStats.totalPending > 0 
+                                            ? Math.round((overallStats.totalCompleted / (overallStats.totalCompleted + overallStats.totalPending)) * 100)
+                                            : 0}%
+                                    </p>
+                                    <p style={{ fontSize: '11px', color: 'var(--text-subtle)' }}>Complete</p>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginTop: '16px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: THEME.success }} />
+                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Completed</span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <div style={{ width: '12px', height: '12px', borderRadius: '4px', background: THEME.warning + '60' }} />
+                                    <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Pending</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Top Performer */}
+                    {overallStats.topStudent && (
+                        <div style={{
+                            background: THEME.gradient,
+                            borderRadius: '16px',
+                            padding: '24px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '20px'
+                        }}>
+                            <div style={{
+                                width: '64px',
+                                height: '64px',
+                                borderRadius: '50%',
+                                background: 'rgba(255,255,255,0.2)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}>
+                                <EmojiEventsIcon sx={{ fontSize: 32, color: '#FFD700' }} />
+                            </div>
+                            <div>
+                                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.7)', textTransform: 'uppercase', marginBottom: '4px' }}>Top Performer</p>
+                                <h3 style={{ fontSize: '20px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>
+                                    {overallStats.topStudent.name}
+                                </h3>
+                                <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.8)' }}>
+                                    Band Score: <strong>{overallStats.topStudent.stats.band.toFixed(1)}</strong> • 
+                                    {' '}{overallStats.topStudent.stats.completedTasks} tasks completed
+                                </p>
+                            </div>
+                        </div>
+                    )}
+                </>
+            )}
+
+            {/* Rankings Tab */}
+            {activeTab === 'rankings' && (
+                <div style={{
+                    background: 'var(--glass-bg)',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '16px',
+                    overflow: 'hidden'
+                }}>
+                    <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border-default)' }}>
+                        <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-default)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <EmojiEventsIcon sx={{ fontSize: 22, color: '#FFD700' }} />
+                            Student Rankings
+                        </h3>
+                    </div>
+                    
+                    {studentsWithStats.length === 0 ? (
+                        <div style={{ padding: '60px', textAlign: 'center' }}>
+                            <PersonIcon sx={{ fontSize: 48, color: 'var(--text-subtle)', marginBottom: '16px' }} />
+                            <p style={{ color: 'var(--text-muted)' }}>No students to rank</p>
+                        </div>
+                    ) : (
+                        <div>
+                            {studentsWithStats.map((student, index) => (
                                 <div
                                     key={student.id}
-                                    className="glass-panel p-6 cursor-pointer hover:border-amber-500/30 transition-colors"
-                                    onClick={() => setFilterStudent(student.id.toString())}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '16px',
+                                        padding: '16px 24px',
+                                        borderBottom: '1px solid var(--border-default)',
+                                        background: index < 3 ? `${['#FFD700', '#C0C0C0', '#CD7F32'][index]}08` : 'transparent'
+                                    }}
                                 >
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold">
-                                                {student.name.charAt(0)}
+                                    {/* Rank */}
+                                    <div style={{
+                                        width: '40px',
+                                        height: '40px',
+                                        borderRadius: '12px',
+                                        background: index < 3 
+                                            ? ['#FFD700', '#C0C0C0', '#CD7F32'][index] 
+                                            : 'var(--surface-default)',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontWeight: 700,
+                                        fontSize: '16px',
+                                        color: index < 3 ? 'white' : 'var(--text-muted)'
+                                    }}>
+                                        {index + 1}
+                                    </div>
+
+                                    {/* Avatar */}
+                                    <div style={{
+                                        width: '44px',
+                                        height: '44px',
+                                        borderRadius: '12px',
+                                        background: THEME.gradient,
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: 'white',
+                                        fontWeight: 700,
+                                        fontSize: '18px'
+                                    }}>
+                                        {student.name.charAt(0).toUpperCase()}
+                                    </div>
+
+                                    {/* Info */}
+                                    <div style={{ flex: 1 }}>
+                                        <h4 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-default)', marginBottom: '2px' }}>
+                                            {student.name}
+                                        </h4>
+                                        <p style={{ fontSize: '12px', color: 'var(--text-subtle)' }}>
+                                            {student.stats.completedTasks} tasks • {student.stats.percentage.toFixed(0)}% score
+                                        </p>
+                                    </div>
+
+                                    {/* Band Score */}
+                                    <div style={{
+                                        padding: '10px 18px',
+                                        background: `${THEME.primary}15`,
+                                        borderRadius: '12px',
+                                        textAlign: 'center'
+                                    }}>
+                                        <p style={{ fontSize: '20px', fontWeight: 700, color: THEME.primary }}>
+                                            {student.stats.band.toFixed(1)}
+                                        </p>
+                                        <p style={{ fontSize: '10px', color: 'var(--text-subtle)' }}>BAND</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {/* Compare Tab */}
+            {activeTab === 'compare' && (
+                <div style={{
+                    background: 'var(--glass-bg)',
+                    border: '1px solid var(--glass-border)',
+                    borderRadius: '16px',
+                    padding: '24px'
+                }}>
+                    <h3 style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-default)', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <CompareArrowsIcon sx={{ fontSize: 22, color: THEME.primary }} />
+                        Group Comparison
+                    </h3>
+
+                    {userGroups.length === 0 ? (
+                        <div style={{ padding: '60px', textAlign: 'center' }}>
+                            <GroupIcon sx={{ fontSize: 48, color: 'var(--text-subtle)', marginBottom: '16px' }} />
+                            <p style={{ color: 'var(--text-muted)' }}>No groups to compare</p>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '16px' }}>
+                            {userGroups.map(group => {
+                                const groupStudents = students.filter(s => group.studentIds?.includes(s.id));
+                                const groupStats = groupStudents.map(s => getStudentStats(s));
+                                const avgBand = groupStats.length > 0 
+                                    ? groupStats.reduce((sum, s) => sum + s.band, 0) / groupStats.length 
+                                    : 0;
+                                const totalCompleted = groupStats.reduce((sum, s) => sum + s.completedTasks, 0);
+
+                                return (
+                                    <div
+                                        key={group.id}
+                                        style={{
+                                            padding: '20px',
+                                            background: 'var(--surface-default)',
+                                            borderRadius: '14px',
+                                            border: '1px solid var(--border-default)'
+                                        }}
+                                    >
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
+                                            <div style={{
+                                                width: '44px',
+                                                height: '44px',
+                                                borderRadius: '12px',
+                                                background: THEME.gradient,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center'
+                                            }}>
+                                                <GroupIcon sx={{ fontSize: 22, color: 'white' }} />
                                             </div>
-                                            <h4 className="font-semibold text-white">{student.name}</h4>
+                                            <div>
+                                                <h4 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-default)' }}>{group.name}</h4>
+                                                <p style={{ fontSize: '12px', color: 'var(--text-subtle)' }}>{groupStudents.length} students</p>
+                                            </div>
                                         </div>
-                                        <span className={`px-3 py-1 rounded-lg text-sm font-bold ${stats.overallBand >= 6
-                                            ? 'bg-emerald-500/20 text-emerald-400'
-                                            : 'bg-amber-500/20 text-amber-400'
-                                            }`}>
-                                            Band {stats.overallBand.toFixed(1)}
-                                        </span>
+
+                                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                                            <div style={{
+                                                padding: '12px',
+                                                background: `${THEME.primary}10`,
+                                                borderRadius: '10px',
+                                                textAlign: 'center'
+                                            }}>
+                                                <p style={{ fontSize: '20px', fontWeight: 700, color: THEME.primary }}>{avgBand.toFixed(1)}</p>
+                                                <p style={{ fontSize: '10px', color: 'var(--text-subtle)' }}>Avg Band</p>
+                                            </div>
+                                            <div style={{
+                                                padding: '12px',
+                                                background: `${THEME.success}10`,
+                                                borderRadius: '10px',
+                                                textAlign: 'center'
+                                            }}>
+                                                <p style={{ fontSize: '20px', fontWeight: 700, color: THEME.success }}>{totalCompleted}</p>
+                                                <p style={{ fontSize: '10px', color: 'var(--text-subtle)' }}>Completed</p>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-zinc-500">Participation</span>
-                                            <span className="text-white">{stats.participation}%</span>
-                                        </div>
-                                        <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                            <div
-                                                className="h-full bg-gradient-to-r from-amber-500 to-orange-500"
-                                                style={{ width: `${stats.participation}%` }}
-                                            />
-                                        </div>
-                                        <div className="flex justify-between text-sm">
-                                            <span className="text-zinc-500">Tasks</span>
-                                            <span className="text-white">{stats.completedTasks}/{stats.totalTasks}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-                </>
-            )}
-
-            {/* Individual Student Stats */}
-            {currentStudent && (
-                <>
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                        <SummaryCard
-                            title="Overall Band"
-                            value={currentStats.overallBand > 0 ? currentStats.overallBand.toFixed(1) : "—"}
-                            subtitle={currentStats.overallBand >= 6 ? "Good Level" : "Beginner"}
-                            icon={StarIcon}
-                            color="#f59e0b"
-                        />
-                        <SummaryCard
-                            title="Completed Tasks"
-                            value={currentStats.completedTasks.toString()}
-                            subtitle={`of ${currentStats.totalTasks} total`}
-                            icon={AssignmentIcon}
-                            color="#3b82f6"
-                        />
-                        <SummaryCard
-                            title="Participation"
-                            value={`${currentStats.participation}%`}
-                            subtitle="Task completion rate"
-                            icon={TimelineIcon}
-                            color="#10b981"
-                        />
-                        <SummaryCard
-                            title="Weakest Skill"
-                            value={
-                                currentStats.skillBands.every(b => b === 0)
-                                    ? "—"
-                                    : SKILLS[currentStats.skillBands.indexOf(Math.min(...currentStats.skillBands.filter(b => b > 0)))]?.name || "None"
-                            }
-                            subtitle="Focus area"
-                            icon={TrendingUpIcon}
-                            color="#ef4444"
-                        />
-                    </div>
-
-                    {/* Charts Grid */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                        {/* Bar Chart - Skills */}
-                        <div className="glass-panel p-8 border-purple-500/20 border-2 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500/50 to-transparent"></div>
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                                    <AssessmentIcon sx={{ fontSize: 24, color: '#a78bfa' }} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-white">Skill Breakdown</h3>
-                                    <p className="text-xs text-zinc-400 uppercase tracking-wider">Bar Chart</p>
-                                </div>
-                            </div>
-                            <div className="h-[250px]">
-                                <Bar data={barChartData} options={chartOptions} />
-                            </div>
+                                );
+                            })}
                         </div>
-
-                        {/* Line Chart - Progress */}
-                        <div className="glass-panel p-8 border-amber-500/20 border-2 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500/50 to-transparent"></div>
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                                    <ShowChartIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-white">Progress Timeline</h3>
-                                    <p className="text-xs text-zinc-400 uppercase tracking-wider">Line Chart</p>
-                                </div>
-                            </div>
-                            <div className="h-[250px]">
-                                {currentStats.progressData.length > 1 ? (
-                                    <Line data={lineChartData} options={chartOptions} />
-                                ) : (
-                                    <div className="flex flex-col items-center justify-center h-full text-zinc-500">
-                                        <ShowChartIcon sx={{ fontSize: 48, opacity: 0.5, mb: 1 }} />
-                                        <p className="text-sm">Complete more tasks to see progress</p>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        {/* Pie Chart - Distribution */}
-                        <div className="glass-panel p-8 border-emerald-500/20 border-2 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500/50 to-transparent"></div>
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                                    <TrendingUpIcon sx={{ fontSize: 24, color: '#34d399' }} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-white">Task Distribution</h3>
-                                    <p className="text-xs text-zinc-400 uppercase tracking-wider">Pie Chart</p>
-                                </div>
-                            </div>
-                            <div className="h-[250px] flex items-center justify-center">
-                                <Pie data={pieChartData} options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: { position: 'bottom', labels: { color: '#a1a1aa', font: { size: 11 } } }
-                                    }
-                                }} />
-                            </div>
-                        </div>
-
-                        {/* Doughnut Chart - Completion */}
-                        <div className="glass-panel p-8 border-blue-500/20 border-2 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-500/50 to-transparent"></div>
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                                    <AssignmentIcon sx={{ fontSize: 24, color: '#60a5fa' }} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-semibold text-white">Task Completion</h3>
-                                    <p className="text-xs text-zinc-400 uppercase tracking-wider">Doughnut Chart</p>
-                                </div>
-                            </div>
-                            <div className="h-[250px] flex items-center justify-center">
-                                <Doughnut data={doughnutChartData} options={{
-                                    responsive: true,
-                                    maintainAspectRatio: false,
-                                    plugins: {
-                                        legend: { position: 'bottom', labels: { color: '#a1a1aa', font: { size: 11 } } }
-                                    }
-                                }} />
-                            </div>
-                        </div>
-                    </div>
-                </>
-            )}
-
-            {/* Empty State */}
-            {!currentStudent && filteredStudents.length === 0 && (
-                <div className="glass-panel p-16 text-center border-2 border-dashed border-white/5">
-                    <div className="w-20 h-20 rounded-full bg-slate-800/50 flex items-center justify-center mx-auto mb-6">
-                        <AssessmentIcon sx={{ fontSize: 48, color: '#71717a' }} />
-                    </div>
-                    <h3 className="text-xl font-serif text-white mb-2">No Students Available</h3>
-                    <p className="text-zinc-500 text-sm max-w-md mx-auto">
-                        {userMode === 'teacher'
-                            ? 'Add students to your groups to start tracking their progress.'
-                            : 'Your statistics will appear here once you complete some tasks.'
-                        }
-                    </p>
+                    )}
                 </div>
             )}
         </div>

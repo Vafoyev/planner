@@ -26,7 +26,258 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import SupervisorAccountIcon from '@mui/icons-material/SupervisorAccount';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useTheme } from '../context/ThemeContext';
+
+// Styles
+const styles = {
+    container: {
+        minHeight: '100vh',
+        padding: '32px',
+        background: 'var(--page-gradient)',
+        backgroundAttachment: 'fixed'
+    },
+    header: {
+        background: 'var(--glass-bg)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: '24px',
+        padding: '28px 32px',
+        marginBottom: '32px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '20px'
+    },
+    headerLeft: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '20px'
+    },
+    headerIcon: {
+        width: '64px',
+        height: '64px',
+        borderRadius: '20px',
+        background: 'linear-gradient(135deg, #EF4444, #DC2626)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        boxShadow: '0 12px 32px rgba(239, 68, 68, 0.4)'
+    },
+    headerTitle: {
+        fontFamily: 'var(--font-serif)',
+        fontSize: '28px',
+        fontWeight: 700,
+        color: 'var(--text-default)',
+        marginBottom: '4px',
+        letterSpacing: '-0.02em'
+    },
+    headerSubtitle: {
+        fontSize: '14px',
+        color: 'var(--text-muted)',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px'
+    },
+    statsGrid: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '20px',
+        marginBottom: '32px'
+    },
+    statCard: {
+        background: 'var(--glass-bg)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: '20px',
+        padding: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '20px',
+        cursor: 'pointer',
+        transition: 'all 0.25s ease'
+    },
+    statIcon: {
+        width: '56px',
+        height: '56px',
+        borderRadius: '16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0
+    },
+    tabContainer: {
+        display: 'flex',
+        gap: '12px',
+        marginBottom: '24px',
+        flexWrap: 'wrap'
+    },
+    tab: (active) => ({
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        padding: '14px 28px',
+        borderRadius: '16px',
+        border: active ? '1px solid var(--primary-500)' : '1px solid var(--border-default)',
+        background: active ? 'rgba(59, 130, 246, 0.15)' : 'var(--surface-default)',
+        color: active ? 'var(--primary-400)' : 'var(--text-muted)',
+        fontFamily: 'var(--font-sans)',
+        fontSize: '14px',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'all 0.2s ease'
+    }),
+    panel: {
+        background: 'var(--glass-bg)',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: '24px',
+        padding: '32px',
+        marginBottom: '24px'
+    },
+    panelHeader: {
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginBottom: '28px',
+        flexWrap: 'wrap',
+        gap: '16px'
+    },
+    panelTitle: {
+        fontSize: '22px',
+        fontWeight: 600,
+        color: 'var(--text-default)'
+    },
+    btn: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '8px',
+        padding: '14px 24px',
+        borderRadius: '14px',
+        border: 'none',
+        fontFamily: 'var(--font-sans)',
+        fontSize: '14px',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'all 0.2s ease'
+    },
+    btnPrimary: {
+        background: 'var(--gradient-primary)',
+        color: 'white',
+        boxShadow: '0 8px 24px rgba(59, 130, 246, 0.35)'
+    },
+    btnSecondary: {
+        background: 'var(--gradient-secondary)',
+        color: 'white',
+        boxShadow: '0 8px 24px rgba(251, 146, 60, 0.35)'
+    },
+    btnDanger: {
+        background: 'var(--error-bg)',
+        color: 'var(--error)',
+        border: '1px solid var(--error)'
+    },
+    btnGhost: {
+        background: 'var(--surface-default)',
+        color: 'var(--text-muted)',
+        border: '1px solid var(--border-default)'
+    },
+    sectionTitle: {
+        fontSize: '13px',
+        fontWeight: 700,
+        textTransform: 'uppercase',
+        letterSpacing: '0.1em',
+        color: 'var(--text-subtle)',
+        marginBottom: '16px',
+        marginTop: '24px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px'
+    },
+    userCard: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '16px',
+        padding: '20px',
+        background: 'var(--surface-default)',
+        border: '1px solid var(--border-default)',
+        borderRadius: '16px',
+        marginBottom: '12px',
+        transition: 'all 0.2s ease'
+    },
+    userAvatar: {
+        width: '48px',
+        height: '48px',
+        borderRadius: '14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0
+    },
+    badge: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '4px 12px',
+        borderRadius: '100px',
+        fontSize: '11px',
+        fontWeight: 600,
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em'
+    },
+    modal: {
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(8px)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 100,
+        padding: '24px'
+    },
+    modalContent: {
+        background: 'var(--glass-bg)',
+        backdropFilter: 'blur(24px)',
+        border: '2px solid var(--primary-500)',
+        borderRadius: '24px',
+        padding: '36px',
+        width: '100%',
+        maxWidth: '480px',
+        boxShadow: '0 24px 48px rgba(0, 0, 0, 0.3)'
+    },
+    input: {
+        width: '100%',
+        padding: '16px 18px',
+        borderRadius: '14px',
+        border: '1px solid var(--border-default)',
+        background: 'var(--surface-default)',
+        color: 'var(--text-default)',
+        fontSize: '14px',
+        fontFamily: 'var(--font-sans)',
+        fontWeight: 500,
+        outline: 'none',
+        transition: 'all 0.2s ease'
+    },
+    label: {
+        display: 'block',
+        fontSize: '13px',
+        fontWeight: 600,
+        color: 'var(--text-muted)',
+        marginBottom: '10px'
+    },
+    emptyState: {
+        textAlign: 'center',
+        padding: '64px 24px'
+    }
+};
+
+// Role colors
+const roleColors = {
+    headteacher: { bg: 'rgba(167, 139, 250, 0.15)', color: '#A78BFA', gradient: 'linear-gradient(135deg, #A78BFA, #7C3AED)', shadow: 'rgba(167, 139, 250, 0.4)' },
+    teacher: { bg: 'rgba(96, 165, 250, 0.15)', color: '#60A5FA', gradient: 'linear-gradient(135deg, #60A5FA, #2563EB)', shadow: 'rgba(96, 165, 250, 0.4)' },
+    student: { bg: 'rgba(52, 211, 153, 0.15)', color: '#34D399', gradient: 'linear-gradient(135deg, #34D399, #059669)', shadow: 'rgba(52, 211, 153, 0.4)' }
+};
 
 const AdminPanel = ({ onLogout }) => {
     const { theme, toggleTheme } = useTheme();
@@ -34,27 +285,16 @@ const AdminPanel = ({ onLogout }) => {
     const [groups, setGroups] = useState([]);
     const [activeTab, setActiveTab] = useState('users');
 
-    // User Form State
+    // Form States
     const [showUserForm, setShowUserForm] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
-    const [userForm, setUserForm] = useState({
-        username: '',
-        password: '',
-        name: '',
-        role: 'student'
-    });
+    const [userForm, setUserForm] = useState({ username: '', password: '', name: '', role: 'student' });
 
-    // Group Form State
     const [showGroupForm, setShowGroupForm] = useState(false);
     const [editingGroup, setEditingGroup] = useState(null);
-    const [groupForm, setGroupForm] = useState({
-        name: '',
-        teacherId: ''
-    });
+    const [groupForm, setGroupForm] = useState({ name: '', teacherId: '' });
 
-    useEffect(() => {
-        loadData();
-    }, []);
+    useEffect(() => { loadData(); }, []);
 
     const loadData = () => {
         setUsers(getUsers().filter(u => u.role !== 'superadmin'));
@@ -69,20 +309,19 @@ const AdminPanel = ({ onLogout }) => {
         } else {
             createUser(userForm);
         }
+        closeUserForm();
+        loadData();
+    };
+
+    const closeUserForm = () => {
         setShowUserForm(false);
         setEditingUser(null);
         setUserForm({ username: '', password: '', name: '', role: 'student' });
-        loadData();
     };
 
     const handleEditUser = (user) => {
         setEditingUser(user);
-        setUserForm({
-            username: user.username,
-            password: user.password,
-            name: user.name,
-            role: user.role
-        });
+        setUserForm({ username: user.username, password: user.password, name: user.name, role: user.role });
         setShowUserForm(true);
     };
 
@@ -96,30 +335,25 @@ const AdminPanel = ({ onLogout }) => {
     // Group CRUD
     const handleGroupSubmit = (e) => {
         e.preventDefault();
+        const data = { ...groupForm, teacherId: groupForm.teacherId ? Number(groupForm.teacherId) : null };
         if (editingGroup) {
-            updateGroup(editingGroup.id, {
-                ...groupForm,
-                teacherId: groupForm.teacherId ? Number(groupForm.teacherId) : null
-            });
+            updateGroup(editingGroup.id, data);
         } else {
-            createGroup({
-                ...groupForm,
-                teacherId: groupForm.teacherId ? Number(groupForm.teacherId) : null,
-                studentIds: []
-            });
+            createGroup({ ...data, studentIds: [] });
         }
+        closeGroupForm();
+        loadData();
+    };
+
+    const closeGroupForm = () => {
         setShowGroupForm(false);
         setEditingGroup(null);
         setGroupForm({ name: '', teacherId: '' });
-        loadData();
     };
 
     const handleEditGroup = (group) => {
         setEditingGroup(group);
-        setGroupForm({
-            name: group.name,
-            teacherId: group.teacherId || ''
-        });
+        setGroupForm({ name: group.name, teacherId: group.teacherId || '' });
         setShowGroupForm(true);
     };
 
@@ -132,17 +366,9 @@ const AdminPanel = ({ onLogout }) => {
 
     const getRoleIcon = (role) => {
         switch (role) {
-            case 'headteacher': return <SupervisorAccountIcon sx={{ fontSize: 20 }} />;
-            case 'teacher': return <SchoolIcon sx={{ fontSize: 20 }} />;
-            default: return <PersonIcon sx={{ fontSize: 20 }} />;
-        }
-    };
-
-    const getRoleColor = (role) => {
-        switch (role) {
-            case 'headteacher': return 'text-purple-400 bg-purple-500/20';
-            case 'teacher': return 'text-blue-400 bg-blue-500/20';
-            default: return 'text-emerald-400 bg-emerald-500/20';
+            case 'headteacher': return <SupervisorAccountIcon sx={{ fontSize: 22 }} />;
+            case 'teacher': return <SchoolIcon sx={{ fontSize: 22 }} />;
+            default: return <PersonIcon sx={{ fontSize: 22 }} />;
         }
     };
 
@@ -151,29 +377,39 @@ const AdminPanel = ({ onLogout }) => {
     const teachersList = users.filter(u => u.role === 'teacher');
     const students = users.filter(u => u.role === 'student');
 
+    const stats = [
+        { label: 'Head Teachers', value: headTeachers.length, icon: SupervisorAccountIcon, ...roleColors.headteacher },
+        { label: 'Teachers', value: teachersList.length, icon: SchoolIcon, ...roleColors.teacher },
+        { label: 'Students', value: students.length, icon: PersonIcon, ...roleColors.student },
+        { label: 'Groups', value: groups.length, icon: GroupIcon, bg: 'rgba(251, 146, 60, 0.15)', color: '#FB923C', gradient: 'linear-gradient(135deg, #FB923C, #EA580C)', shadow: 'rgba(251, 146, 60, 0.4)' }
+    ];
+
     return (
-        <div className="admin-panel min-h-screen p-6">
+        <div style={styles.container}>
             {/* Header */}
-            <header className="glass-panel p-6 mb-8 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center shadow-lg shadow-red-500/30">
-                        <AdminPanelSettingsIcon sx={{ fontSize: 28, color: '#fff' }} />
+            <header style={styles.header}>
+                <div style={styles.headerLeft}>
+                    <div style={styles.headerIcon}>
+                        <AdminPanelSettingsIcon sx={{ fontSize: 32, color: 'white' }} />
                     </div>
                     <div>
-                        <h1 className="text-2xl font-serif font-bold text-white">Admin Panel</h1>
-                        <p className="text-sm text-zinc-400">User & Group Management</p>
+                        <h1 style={styles.headerTitle}>Admin Panel</h1>
+                        <p style={styles.headerSubtitle}>
+                            <SettingsIcon sx={{ fontSize: 16 }} />
+                            User & Group Management
+                        </p>
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <button
                         onClick={toggleTheme}
-                        className="p-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-400 hover:text-white transition-all"
+                        style={{ ...styles.btn, ...styles.btnGhost, padding: '14px' }}
                     >
                         {theme === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
                     </button>
                     <button
                         onClick={onLogout}
-                        className="flex items-center gap-2 px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors border border-red-500/20"
+                        style={{ ...styles.btn, ...styles.btnDanger }}
                     >
                         <LogoutIcon sx={{ fontSize: 18 }} />
                         Logout
@@ -181,65 +417,31 @@ const AdminPanel = ({ onLogout }) => {
                 </div>
             </header>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div className="glass-panel p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                        <SupervisorAccountIcon sx={{ fontSize: 24, color: '#a78bfa' }} />
-                    </div>
-                    <div>
-                        <p className="text-3xl font-bold text-white">{headTeachers.length}</p>
-                        <p className="text-xs text-zinc-400 uppercase tracking-wider">Head Teachers</p>
-                    </div>
-                </div>
-                <div className="glass-panel p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                        <SchoolIcon sx={{ fontSize: 24, color: '#60a5fa' }} />
-                    </div>
-                    <div>
-                        <p className="text-3xl font-bold text-white">{teachersList.length}</p>
-                        <p className="text-xs text-zinc-400 uppercase tracking-wider">Teachers</p>
-                    </div>
-                </div>
-                <div className="glass-panel p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
-                        <PersonIcon sx={{ fontSize: 24, color: '#34d399' }} />
-                    </div>
-                    <div>
-                        <p className="text-3xl font-bold text-white">{students.length}</p>
-                        <p className="text-xs text-zinc-400 uppercase tracking-wider">Students</p>
-                    </div>
-                </div>
-                <div className="glass-panel p-6 flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                        <GroupIcon sx={{ fontSize: 24, color: '#f59e0b' }} />
-                    </div>
-                    <div>
-                        <p className="text-3xl font-bold text-white">{groups.length}</p>
-                        <p className="text-xs text-zinc-400 uppercase tracking-wider">Groups</p>
-                    </div>
-                </div>
+            {/* Stats */}
+            <div style={styles.statsGrid}>
+                {stats.map((stat, i) => {
+                    const Icon = stat.icon;
+                    return (
+                        <div key={i} style={styles.statCard}>
+                            <div style={{ ...styles.statIcon, background: stat.gradient, boxShadow: `0 8px 24px ${stat.shadow}` }}>
+                                <Icon sx={{ fontSize: 28, color: 'white' }} />
+                            </div>
+                            <div>
+                                <p style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-default)', lineHeight: 1.1 }}>{stat.value}</p>
+                                <p style={{ fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-subtle)', fontWeight: 600, marginTop: '4px' }}>{stat.label}</p>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
 
-            {/* Tab Navigation */}
-            <div className="flex gap-2 mb-6">
-                <button
-                    onClick={() => setActiveTab('users')}
-                    className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${activeTab === 'users'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
-                        }`}
-                >
+            {/* Tabs */}
+            <div style={styles.tabContainer}>
+                <button style={styles.tab(activeTab === 'users')} onClick={() => setActiveTab('users')}>
                     <PersonIcon sx={{ fontSize: 20 }} />
                     Users
                 </button>
-                <button
-                    onClick={() => setActiveTab('groups')}
-                    className={`px-6 py-3 rounded-xl font-medium transition-all flex items-center gap-2 ${activeTab === 'groups'
-                            ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                            : 'bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white'
-                        }`}
-                >
+                <button style={styles.tab(activeTab === 'groups')} onClick={() => setActiveTab('groups')}>
                     <GroupIcon sx={{ fontSize: 20 }} />
                     Groups
                 </button>
@@ -247,291 +449,184 @@ const AdminPanel = ({ onLogout }) => {
 
             {/* Users Tab */}
             {activeTab === 'users' && (
-                <div className="glass-panel p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-semibold text-white">User Management</h2>
+                <div style={styles.panel}>
+                    <div style={styles.panelHeader}>
+                        <h2 style={styles.panelTitle}>User Management</h2>
                         <button
-                            onClick={() => {
-                                setEditingUser(null);
-                                setUserForm({ username: '', password: '', name: '', role: 'student' });
-                                setShowUserForm(true);
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-amber-500/25 transition-all"
+                            onClick={() => { setEditingUser(null); setUserForm({ username: '', password: '', name: '', role: 'student' }); setShowUserForm(true); }}
+                            style={{ ...styles.btn, ...styles.btnPrimary }}
                         >
                             <PersonAddIcon sx={{ fontSize: 20 }} />
                             Add User
                         </button>
                     </div>
 
-                    {/* User Form Modal */}
-                    {showUserForm && (
-                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                            <div className="glass-panel p-8 w-full max-w-md m-4 border-amber-500/20 border-2">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-semibold text-white">
-                                        {editingUser ? 'Edit User' : 'Create New User'}
-                                    </h3>
-                                    <button
-                                        onClick={() => setShowUserForm(false)}
-                                        className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white"
-                                    >
-                                        <CloseIcon />
-                                    </button>
-                                </div>
-                                <form onSubmit={handleUserSubmit} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm text-zinc-400 mb-2">Full Name</label>
-                                        <input
-                                            type="text"
-                                            value={userForm.name}
-                                            onChange={(e) => setUserForm({ ...userForm, name: e.target.value })}
-                                            className="glass-input w-full"
-                                            placeholder="Enter full name"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm text-zinc-400 mb-2">Username</label>
-                                        <input
-                                            type="text"
-                                            value={userForm.username}
-                                            onChange={(e) => setUserForm({ ...userForm, username: e.target.value })}
-                                            className="glass-input w-full"
-                                            placeholder="Enter username"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm text-zinc-400 mb-2">Password</label>
-                                        <input
-                                            type="text"
-                                            value={userForm.password}
-                                            onChange={(e) => setUserForm({ ...userForm, password: e.target.value })}
-                                            className="glass-input w-full"
-                                            placeholder="Enter password"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm text-zinc-400 mb-2">Role</label>
-                                        <select
-                                            value={userForm.role}
-                                            onChange={(e) => setUserForm({ ...userForm, role: e.target.value })}
-                                            className="glass-input w-full bg-slate-800"
-                                        >
-                                            <option value="student">Student</option>
-                                            <option value="teacher">Teacher</option>
-                                            <option value="headteacher">Head Teacher</option>
-                                        </select>
-                                    </div>
-                                    <div className="flex gap-3 pt-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowUserForm(false)}
-                                            className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-lg transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <SaveIcon sx={{ fontSize: 18 }} />
-                                            {editingUser ? 'Update' : 'Create'}
-                                        </button>
-                                    </div>
-                                </form>
+                    {users.length === 0 ? (
+                        <div style={styles.emptyState}>
+                            <div style={{ width: '80px', height: '80px', margin: '0 auto 20px', borderRadius: '50%', background: 'var(--surface-default)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <PersonIcon sx={{ fontSize: 40, color: 'var(--text-subtle)' }} />
                             </div>
+                            <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-default)', marginBottom: '8px' }}>No users yet</p>
+                            <p style={{ fontSize: '14px', color: 'var(--text-subtle)' }}>Click "Add User" to create your first user.</p>
                         </div>
+                    ) : (
+                        <>
+                            {/* Head Teachers */}
+                            {headTeachers.length > 0 && (
+                                <>
+                                    <div style={styles.sectionTitle}>
+                                        <SupervisorAccountIcon sx={{ fontSize: 18, color: roleColors.headteacher.color }} />
+                                        Head Teachers ({headTeachers.length})
+                                    </div>
+                                    {headTeachers.map(user => <UserCard key={user.id} user={user} onEdit={handleEditUser} onDelete={handleDeleteUser} />)}
+                                </>
+                            )}
+
+                            {/* Teachers */}
+                            {teachersList.length > 0 && (
+                                <>
+                                    <div style={styles.sectionTitle}>
+                                        <SchoolIcon sx={{ fontSize: 18, color: roleColors.teacher.color }} />
+                                        Teachers ({teachersList.length})
+                                    </div>
+                                    {teachersList.map(user => <UserCard key={user.id} user={user} onEdit={handleEditUser} onDelete={handleDeleteUser} />)}
+                                </>
+                            )}
+
+                            {/* Students */}
+                            {students.length > 0 && (
+                                <>
+                                    <div style={styles.sectionTitle}>
+                                        <PersonIcon sx={{ fontSize: 18, color: roleColors.student.color }} />
+                                        Students ({students.length})
+                                    </div>
+                                    {students.map(user => <UserCard key={user.id} user={user} onEdit={handleEditUser} onDelete={handleDeleteUser} />)}
+                                </>
+                            )}
+                        </>
                     )}
-
-                    {/* Users List */}
-                    <div className="space-y-4">
-                        {/* Head Teachers */}
-                        {headTeachers.length > 0 && (
-                            <div className="mb-6">
-                                <h3 className="text-sm font-bold text-purple-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    <SupervisorAccountIcon sx={{ fontSize: 16 }} />
-                                    Head Teachers ({headTeachers.length})
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {headTeachers.map(user => (
-                                        <UserCard key={user.id} user={user} onEdit={handleEditUser} onDelete={handleDeleteUser} />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Teachers */}
-                        {teachersList.length > 0 && (
-                            <div className="mb-6">
-                                <h3 className="text-sm font-bold text-blue-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    <SchoolIcon sx={{ fontSize: 16 }} />
-                                    Teachers ({teachersList.length})
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {teachersList.map(user => (
-                                        <UserCard key={user.id} user={user} onEdit={handleEditUser} onDelete={handleDeleteUser} />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Students */}
-                        {students.length > 0 && (
-                            <div>
-                                <h3 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                                    <PersonIcon sx={{ fontSize: 16 }} />
-                                    Students ({students.length})
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {students.map(user => (
-                                        <UserCard key={user.id} user={user} onEdit={handleEditUser} onDelete={handleDeleteUser} />
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {users.length === 0 && (
-                            <div className="text-center py-16 text-zinc-500">
-                                <PersonIcon sx={{ fontSize: 48, opacity: 0.5, mb: 2 }} />
-                                <p>No users created yet. Click "Add User" to create your first user.</p>
-                            </div>
-                        )}
-                    </div>
                 </div>
             )}
 
             {/* Groups Tab */}
             {activeTab === 'groups' && (
-                <div className="glass-panel p-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-semibold text-white">Group Management</h2>
+                <div style={styles.panel}>
+                    <div style={styles.panelHeader}>
+                        <h2 style={styles.panelTitle}>Group Management</h2>
                         <button
-                            onClick={() => {
-                                setEditingGroup(null);
-                                setGroupForm({ name: '', teacherId: '' });
-                                setShowGroupForm(true);
-                            }}
-                            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-amber-500/25 transition-all"
+                            onClick={() => { setEditingGroup(null); setGroupForm({ name: '', teacherId: '' }); setShowGroupForm(true); }}
+                            style={{ ...styles.btn, ...styles.btnSecondary }}
                         >
                             <GroupAddIcon sx={{ fontSize: 20 }} />
                             Add Group
                         </button>
                     </div>
 
-                    {/* Group Form Modal */}
-                    {showGroupForm && (
-                        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                            <div className="glass-panel p-8 w-full max-w-md m-4 border-amber-500/20 border-2">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h3 className="text-xl font-semibold text-white">
-                                        {editingGroup ? 'Edit Group' : 'Create New Group'}
-                                    </h3>
-                                    <button
-                                        onClick={() => setShowGroupForm(false)}
-                                        className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-white"
-                                    >
-                                        <CloseIcon />
-                                    </button>
-                                </div>
-                                <form onSubmit={handleGroupSubmit} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm text-zinc-400 mb-2">Group Name</label>
-                                        <input
-                                            type="text"
-                                            value={groupForm.name}
-                                            onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })}
-                                            className="glass-input w-full"
-                                            placeholder="e.g., IELTS Morning Class"
-                                            required
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm text-zinc-400 mb-2">Assign Teacher</label>
-                                        <select
-                                            value={groupForm.teacherId}
-                                            onChange={(e) => setGroupForm({ ...groupForm, teacherId: e.target.value })}
-                                            className="glass-input w-full bg-slate-800"
-                                        >
-                                            <option value="">-- No Teacher --</option>
-                                            {teachers.map(t => (
-                                                <option key={t.id} value={t.id}>
-                                                    {t.name} ({t.role === 'headteacher' ? 'Head Teacher' : 'Teacher'})
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                    <div className="flex gap-3 pt-4">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowGroupForm(false)}
-                                            className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-zinc-300 rounded-lg transition-colors"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="submit"
-                                            className="flex-1 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-amber-500/25 transition-all flex items-center justify-center gap-2"
-                                        >
-                                            <SaveIcon sx={{ fontSize: 18 }} />
-                                            {editingGroup ? 'Update' : 'Create'}
-                                        </button>
-                                    </div>
-                                </form>
+                    {groups.length === 0 ? (
+                        <div style={styles.emptyState}>
+                            <div style={{ width: '80px', height: '80px', margin: '0 auto 20px', borderRadius: '50%', background: 'var(--surface-default)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <GroupIcon sx={{ fontSize: 40, color: 'var(--text-subtle)' }} />
                             </div>
+                            <p style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-default)', marginBottom: '8px' }}>No groups created yet</p>
+                            <p style={{ fontSize: '14px', color: 'var(--text-subtle)' }}>Click "Add Group" to create your first group.</p>
+                        </div>
+                    ) : (
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+                            {groups.map(group => (
+                                <GroupCard key={group.id} group={group} users={users} onEdit={handleEditGroup} onDelete={handleDeleteGroup} />
+                            ))}
                         </div>
                     )}
+                </div>
+            )}
 
-                    {/* Groups List */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {groups.map(group => {
-                            const teacher = users.find(u => u.id === group.teacherId);
-                            const groupStudents = students.filter(s => group.studentIds.includes(s.id));
-
-                            return (
-                                <div key={group.id} className="glass-panel p-6 border border-white/10 hover:border-amber-500/30 transition-colors">
-                                    <div className="flex items-start justify-between mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
-                                                <GroupIcon sx={{ fontSize: 24, color: '#fff' }} />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-semibold text-white">{group.name}</h4>
-                                                <p className="text-xs text-zinc-400">
-                                                    {teacher ? teacher.name : 'No teacher assigned'}
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <div className="flex gap-1">
-                                            <button
-                                                onClick={() => handleEditGroup(group)}
-                                                className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-amber-400"
-                                            >
-                                                <EditIcon sx={{ fontSize: 18 }} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteGroup(group.id)}
-                                                className="p-2 hover:bg-red-500/10 rounded-lg text-zinc-400 hover:text-red-400"
-                                            >
-                                                <DeleteIcon sx={{ fontSize: 18 }} />
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-between text-sm">
-                                        <span className="text-zinc-400">Students:</span>
-                                        <span className="text-white font-medium">{groupStudents.length}</span>
-                                    </div>
+            {/* User Form Modal */}
+            {showUserForm && (
+                <div style={styles.modal}>
+                    <div style={styles.modalContent}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+                            <h3 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-default)' }}>
+                                {editingUser ? 'Edit User' : 'Create New User'}
+                            </h3>
+                            <button onClick={closeUserForm} style={{ ...styles.btn, ...styles.btnGhost, padding: '10px' }}>
+                                <CloseIcon sx={{ fontSize: 20 }} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleUserSubmit}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <div>
+                                    <label style={styles.label}>Full Name</label>
+                                    <input type="text" value={userForm.name} onChange={(e) => setUserForm({ ...userForm, name: e.target.value })} style={styles.input} placeholder="Enter full name" required />
                                 </div>
-                            );
-                        })}
-
-                        {groups.length === 0 && (
-                            <div className="col-span-full text-center py-16 text-zinc-500">
-                                <GroupIcon sx={{ fontSize: 48, opacity: 0.5, mb: 2 }} />
-                                <p>No groups created yet. Click "Add Group" to create your first group.</p>
+                                <div>
+                                    <label style={styles.label}>Username</label>
+                                    <input type="text" value={userForm.username} onChange={(e) => setUserForm({ ...userForm, username: e.target.value })} style={styles.input} placeholder="Enter username" required />
+                                </div>
+                                <div>
+                                    <label style={styles.label}>Password</label>
+                                    <input type="text" value={userForm.password} onChange={(e) => setUserForm({ ...userForm, password: e.target.value })} style={styles.input} placeholder="Enter password" required />
+                                </div>
+                                <div>
+                                    <label style={styles.label}>Role</label>
+                                    <select value={userForm.role} onChange={(e) => setUserForm({ ...userForm, role: e.target.value })} style={styles.input}>
+                                        <option value="student">Student</option>
+                                        <option value="teacher">Teacher</option>
+                                        <option value="headteacher">Head Teacher</option>
+                                    </select>
+                                </div>
                             </div>
-                        )}
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '28px' }}>
+                                <button type="button" onClick={closeUserForm} style={{ ...styles.btn, ...styles.btnGhost, flex: 1, justifyContent: 'center' }}>
+                                    Cancel
+                                </button>
+                                <button type="submit" style={{ ...styles.btn, ...styles.btnPrimary, flex: 1, justifyContent: 'center' }}>
+                                    <SaveIcon sx={{ fontSize: 18 }} />
+                                    {editingUser ? 'Update' : 'Create'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Group Form Modal */}
+            {showGroupForm && (
+                <div style={styles.modal}>
+                    <div style={styles.modalContent}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+                            <h3 style={{ fontSize: '22px', fontWeight: 600, color: 'var(--text-default)' }}>
+                                {editingGroup ? 'Edit Group' : 'Create New Group'}
+                            </h3>
+                            <button onClick={closeGroupForm} style={{ ...styles.btn, ...styles.btnGhost, padding: '10px' }}>
+                                <CloseIcon sx={{ fontSize: 20 }} />
+                            </button>
+                        </div>
+                        <form onSubmit={handleGroupSubmit}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                                <div>
+                                    <label style={styles.label}>Group Name</label>
+                                    <input type="text" value={groupForm.name} onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })} style={styles.input} placeholder="e.g., IELTS Batch 1" required />
+                                </div>
+                                <div>
+                                    <label style={styles.label}>Assign Teacher (Optional)</label>
+                                    <select value={groupForm.teacherId} onChange={(e) => setGroupForm({ ...groupForm, teacherId: e.target.value })} style={styles.input}>
+                                        <option value="">-- Select Teacher --</option>
+                                        {teachers.map(t => (
+                                            <option key={t.id} value={t.id}>{t.name} ({t.role === 'headteacher' ? 'Head' : 'Teacher'})</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '28px' }}>
+                                <button type="button" onClick={closeGroupForm} style={{ ...styles.btn, ...styles.btnGhost, flex: 1, justifyContent: 'center' }}>
+                                    Cancel
+                                </button>
+                                <button type="submit" style={{ ...styles.btn, ...styles.btnSecondary, flex: 1, justifyContent: 'center' }}>
+                                    <SaveIcon sx={{ fontSize: 18 }} />
+                                    {editingGroup ? 'Update' : 'Create'}
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
             )}
@@ -541,54 +636,74 @@ const AdminPanel = ({ onLogout }) => {
 
 // User Card Component
 const UserCard = ({ user, onEdit, onDelete }) => {
-    const getRoleColor = (role) => {
-        switch (role) {
-            case 'headteacher': return 'from-purple-500 to-violet-600';
-            case 'teacher': return 'from-blue-500 to-cyan-600';
-            default: return 'from-emerald-500 to-teal-600';
-        }
-    };
-
-    const getRoleBadge = (role) => {
-        switch (role) {
-            case 'headteacher': return { bg: 'bg-purple-500/20', text: 'text-purple-400', label: 'Head Teacher' };
-            case 'teacher': return { bg: 'bg-blue-500/20', text: 'text-blue-400', label: 'Teacher' };
-            default: return { bg: 'bg-emerald-500/20', text: 'text-emerald-400', label: 'Student' };
-        }
-    };
-
-    const badge = getRoleBadge(user.role);
+    const role = roleColors[user.role] || roleColors.student;
+    const Icon = user.role === 'headteacher' ? SupervisorAccountIcon : user.role === 'teacher' ? SchoolIcon : PersonIcon;
 
     return (
-        <div className="glass-panel p-4 border border-white/5 hover:border-white/20 transition-all group">
-            <div className="flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${getRoleColor(user.role)} flex items-center justify-center text-white font-bold text-lg shadow-lg`}>
-                    {user.name.charAt(0).toUpperCase()}
-                </div>
-                <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-white truncate">{user.name}</h4>
-                    <p className="text-xs text-zinc-500">@{user.username}</p>
-                </div>
-                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                        onClick={() => onEdit(user)}
-                        className="p-2 hover:bg-white/10 rounded-lg text-zinc-400 hover:text-amber-400"
-                    >
-                        <EditIcon sx={{ fontSize: 16 }} />
-                    </button>
-                    <button
-                        onClick={() => onDelete(user.id)}
-                        className="p-2 hover:bg-red-500/10 rounded-lg text-zinc-400 hover:text-red-400"
-                    >
-                        <DeleteIcon sx={{ fontSize: 16 }} />
-                    </button>
+        <div style={styles.userCard}>
+            <div style={{ ...styles.userAvatar, background: role.gradient, boxShadow: `0 6px 16px ${role.shadow}` }}>
+                <Icon sx={{ fontSize: 22, color: 'white' }} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+                <p style={{ fontSize: '16px', fontWeight: 600, color: 'var(--text-default)', marginBottom: '4px' }}>{user.name}</p>
+                <p style={{ fontSize: '13px', color: 'var(--text-subtle)', marginBottom: '8px' }}>@{user.username}</p>
+                <span style={{ ...styles.badge, background: role.bg, color: role.color }}>
+                    {user.role === 'headteacher' ? 'Head Teacher' : user.role === 'teacher' ? 'Teacher' : 'Student'}
+                </span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => onEdit(user)} style={{ padding: '10px', borderRadius: '12px', border: '1px solid var(--border-default)', background: 'var(--surface-default)', cursor: 'pointer', color: 'var(--primary-400)', transition: 'all 0.2s' }}>
+                    <EditIcon sx={{ fontSize: 18 }} />
+                </button>
+                <button onClick={() => onDelete(user.id)} style={{ padding: '10px', borderRadius: '12px', border: '1px solid var(--error)', background: 'var(--error-bg)', cursor: 'pointer', color: 'var(--error)', transition: 'all 0.2s' }}>
+                    <DeleteIcon sx={{ fontSize: 18 }} />
+                </button>
+            </div>
+        </div>
+    );
+};
+
+// Group Card Component
+const GroupCard = ({ group, users, onEdit, onDelete }) => {
+    const teacher = users.find(u => u.id === group.teacherId);
+    const studentCount = group.studentIds?.length || 0;
+
+    return (
+        <div style={{
+            background: 'var(--surface-default)',
+            border: '1px solid var(--border-default)',
+            borderRadius: '20px',
+            padding: '24px',
+            transition: 'all 0.2s ease'
+        }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                    <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: 'linear-gradient(135deg, #FB923C, #EA580C)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 6px 16px rgba(251, 146, 60, 0.35)' }}>
+                        <GroupIcon sx={{ fontSize: 24, color: 'white' }} />
+                    </div>
+                    <div>
+                        <h4 style={{ fontSize: '17px', fontWeight: 600, color: 'var(--text-default)' }}>{group.name}</h4>
+                        <p style={{ fontSize: '12px', color: 'var(--text-subtle)' }}>{studentCount} student{studentCount !== 1 ? 's' : ''}</p>
+                    </div>
                 </div>
             </div>
-            <div className="mt-3 flex items-center justify-between">
-                <span className={`text-xs px-2 py-1 rounded-full ${badge.bg} ${badge.text}`}>
-                    {badge.label}
-                </span>
-                <span className="text-xs text-zinc-500">ID: {user.id}</span>
+
+            {teacher && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '12px 14px', background: 'var(--bg-muted)', borderRadius: '12px', marginBottom: '16px' }}>
+                    <SchoolIcon sx={{ fontSize: 18, color: roleColors.teacher.color }} />
+                    <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Teacher: <strong style={{ color: 'var(--text-default)' }}>{teacher.name}</strong></span>
+                </div>
+            )}
+
+            <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => onEdit(group)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', borderRadius: '12px', border: '1px solid var(--border-default)', background: 'var(--surface-default)', cursor: 'pointer', color: 'var(--primary-400)', fontSize: '13px', fontWeight: 600, transition: 'all 0.2s' }}>
+                    <EditIcon sx={{ fontSize: 16 }} />
+                    Edit
+                </button>
+                <button onClick={() => onDelete(group.id)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '12px', borderRadius: '12px', border: '1px solid var(--error)', background: 'var(--error-bg)', cursor: 'pointer', color: 'var(--error)', fontSize: '13px', fontWeight: 600, transition: 'all 0.2s' }}>
+                    <DeleteIcon sx={{ fontSize: 16 }} />
+                    Delete
+                </button>
             </div>
         </div>
     );

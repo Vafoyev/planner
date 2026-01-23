@@ -9,6 +9,7 @@ import GroupManager from './components/GroupManager';
 import DashboardHome from './components/DashboardHome';
 import Login from './components/Login';
 import AdminPanel from './components/AdminPanel';
+import HeadTeacherDashboard from './components/HeadTeacherDashboard';
 
 // Initialize database on app load
 initializeDatabase();
@@ -221,13 +222,23 @@ function App() {
         onLogout={handleLogout}
       >
         {currentView === 'dashboard' ? (
-          <DashboardHome
-            userMode={userMode}
-            user={user}
-            students={students}
-            tasks={getFilteredTasks()}
-            groups={groups}
-          />
+          user.role === 'headteacher' ? (
+            <HeadTeacherDashboard
+              user={user}
+              teachers={allUsers.filter(u => u.role === 'teacher' || u.role === 'headteacher')}
+              students={allUsers.filter(u => u.role === 'student')}
+              groups={groups}
+              tasks={appData.tasks || {}}
+            />
+          ) : (
+            <DashboardHome
+              userMode={userMode}
+              user={user}
+              students={students}
+              tasks={getFilteredTasks()}
+              groups={groups}
+            />
+          )
         ) : currentView === 'groups' && userMode === 'teacher' ? (
           <GroupManager
             user={user}
@@ -249,6 +260,7 @@ function App() {
             students={students}
             selectedStudent={enrichedStudent}
             selectedGroup={selectedGroup}
+            groups={groups}
             onUpdateTask={handleUpdateTask}
             onAddTask={handleAddTask}
             onDeleteTask={handleDeleteTask}
