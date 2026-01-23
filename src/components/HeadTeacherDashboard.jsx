@@ -445,7 +445,7 @@ const HeadTeacherDashboard = ({ user, teachers = [], students = [], groups = [],
           }
         >
           <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '16px' }}>
-            Select 2-4 groups to compare their IELTS performance
+            Select 2-4 groups to compare their performance
           </p>
 
           {/* Group Selection */}

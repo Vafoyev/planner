@@ -605,7 +605,7 @@ const AdminPanel = ({ onLogout }) => {
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
                                 <div>
                                     <label style={styles.label}>Group Name</label>
-                                    <input type="text" value={groupForm.name} onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })} style={styles.input} placeholder="e.g., IELTS Batch 1" required />
+                                    <input type="text" value={groupForm.name} onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })} style={styles.input} placeholder="e.g., Batch 1" required />
                                 </div>
                                 <div>
                                     <label style={styles.label}>Assign Teacher (Optional)</label>

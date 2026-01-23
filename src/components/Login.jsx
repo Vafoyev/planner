@@ -179,7 +179,7 @@ const Login = ({ onLogin, onAdminLogin }) => {
               color: 'var(--text-muted)',
               letterSpacing: '0.02em'
             }}>
-              {showAdminAccess ? 'Super Administrator Login' : 'IELTS & English Learning Platform'}
+              {showAdminAccess ? 'Super Administrator Login' : 'Learning Management Platform'}
             </p>
           </div>
 

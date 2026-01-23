@@ -15,7 +15,7 @@ import StarIcon from '@mui/icons-material/Star';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 
-// IELTS Skills
+// Skills
 const SKILLS = [
   { name: 'Listening', icon: HeadphonesIcon, gradient: 'linear-gradient(135deg, #A78BFA, #7C3AED)', shadow: 'rgba(167, 139, 250, 0.4)' },
   { name: 'Reading', icon: AutoStoriesIcon, gradient: 'linear-gradient(135deg, #60A5FA, #2563EB)', shadow: 'rgba(96, 165, 250, 0.4)' },
@@ -151,7 +151,7 @@ const DashboardHome = ({ userMode, user, students = [], tasks = {}, groups = [] 
                 <StarIcon sx={{ fontSize: 12 }} />
                 {badge.label}
               </span>
-              <span style={{ fontSize: '13px', color: 'var(--text-subtle)' }}>• IELTS Learning Platform</span>
+              <span style={{ fontSize: '13px', color: 'var(--text-subtle)' }}>• Learning Platform</span>
             </div>
           </div>
 
@@ -183,7 +183,7 @@ const DashboardHome = ({ userMode, user, students = [], tasks = {}, groups = [] 
         </div>
       </div>
 
-      {/* IELTS Skills */}
+      {/* Skills */}
       <div style={{ marginBottom: '32px' }}>
         <h2 style={{
           fontSize: '18px',
@@ -195,7 +195,7 @@ const DashboardHome = ({ userMode, user, students = [], tasks = {}, groups = [] 
           gap: '10px'
         }}>
           <EmojiEventsIcon sx={{ fontSize: 22, color: 'var(--accent-500)' }} />
-          IELTS Skills
+          Skills Overview
         </h2>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px' }}>
           {SKILLS.map((skill, i) => {
@@ -408,11 +408,11 @@ const SchedulePanel = ({ todayTasks, todayName }) => (
 const QuickActionsPanel = ({ userMode }) => {
   const actions = userMode === 'teacher' ? [
     { icon: GroupIcon, title: 'Manage Groups', desc: 'Create and organize study groups', gradient: SKILLS[0].gradient, shadow: SKILLS[0].shadow },
-    { icon: AssignmentIcon, title: 'Create Task', desc: 'Add new IELTS assignments', gradient: SKILLS[3].gradient, shadow: SKILLS[3].shadow },
+    { icon: AssignmentIcon, title: 'Create Task', desc: 'Add new assignments', gradient: SKILLS[3].gradient, shadow: SKILLS[3].shadow },
     { icon: TrendingUpIcon, title: 'View Statistics', desc: 'Analyze student performance', gradient: SKILLS[2].gradient, shadow: SKILLS[2].shadow }
   ] : [
     { icon: AssignmentIcon, title: 'View My Tasks', desc: 'Check your assigned work', gradient: SKILLS[3].gradient, shadow: SKILLS[3].shadow },
-    { icon: TrendingUpIcon, title: 'My Progress', desc: 'Track your IELTS band score', gradient: SKILLS[2].gradient, shadow: SKILLS[2].shadow },
+    { icon: TrendingUpIcon, title: 'My Progress', desc: 'Track your band score', gradient: SKILLS[2].gradient, shadow: SKILLS[2].shadow },
     { icon: CalendarTodayIcon, title: 'Weekly Schedule', desc: 'Plan your study time', gradient: SKILLS[1].gradient, shadow: SKILLS[1].shadow }
   ];
 

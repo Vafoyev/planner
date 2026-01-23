@@ -38,7 +38,7 @@ const THEME = {
     shadow: 'rgba(40, 143, 178, 0.35)'
 };
 
-// IELTS Skills for decoration
+// Skills for decoration
 const SKILLS = [
     { name: 'Listening', icon: HeadphonesIcon, color: '#288FB2' },
     { name: 'Reading', icon: AutoStoriesIcon, color: '#1C5570' },
@@ -201,7 +201,7 @@ const GroupManager = ({ user, onSelectGroup, selectedGroup }) => {
                             Group Management
                         </h2>
                         <p style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-                            {isHeadTeacher ? 'Create and manage IELTS study groups' : 'Manage your assigned groups'} • {groups.length} groups
+                            {isHeadTeacher ? 'Create and manage study groups' : 'Manage your assigned groups'} • {groups.length} groups
                         </p>
                     </div>
                     {isHeadTeacher && (
@@ -256,7 +256,7 @@ const GroupManager = ({ user, onSelectGroup, selectedGroup }) => {
                         No Groups Yet
                     </h3>
                     <p style={{ fontSize: '14px', color: 'var(--text-muted)', maxWidth: '300px', margin: '0 auto' }}>
-                        {isHeadTeacher ? 'Create your first IELTS group to start organizing students' : 'No groups have been assigned to you yet'}
+                        {isHeadTeacher ? 'Create your first group to start organizing students' : 'No groups have been assigned to you yet'}
                     </p>
                 </div>
             ) : (
@@ -338,7 +338,7 @@ const GroupManager = ({ user, onSelectGroup, selectedGroup }) => {
                                     </h3>
                                     <p style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                                         <EmojiEventsIcon sx={{ fontSize: 14, color: THEME.accent }} />
-                                        IELTS Preparation
+                                        General Course
                                     </p>
                                 </div>
 
@@ -535,12 +535,12 @@ const GroupManager = ({ user, onSelectGroup, selectedGroup }) => {
                                     </h2>
                                     <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.7)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                                         <EmojiEventsIcon sx={{ fontSize: 16 }} />
-                                        IELTS Preparation Course
+                                        General Course
                                     </p>
                                 </div>
                             </div>
 
-                            {/* IELTS Skills Bar */}
+                            {/* Skills Bar */}
                             <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
                                 {SKILLS.map((skill, i) => (
                                     <div key={i} style={{
@@ -849,7 +849,7 @@ const GroupManager = ({ user, onSelectGroup, selectedGroup }) => {
                                         {editingGroup ? 'Edit Group' : 'Create New Group'}
                                     </h3>
                                     <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.7)' }}>
-                                        {editingGroup ? 'Update group details' : 'Add a new IELTS study group'}
+                                        {editingGroup ? 'Update group details' : 'Add a new study group'}
                                     </p>
                                 </div>
                             </div>
@@ -894,7 +894,7 @@ const GroupManager = ({ user, onSelectGroup, selectedGroup }) => {
                                         type="text"
                                         value={groupForm.name}
                                         onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })}
-                                        placeholder="e.g., IELTS Morning Class"
+                                        placeholder="e.g., Morning Class"
                                         required
                                         style={{
                                             width: '100%',

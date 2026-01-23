@@ -107,7 +107,7 @@ const Layout = ({
             </div>
             <div>
               <span className="font-serif font-bold text-lg block" style={{ color: 'var(--text-default)' }}>English Academy</span>
-              <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-subtle)' }}>IELTS Platform</span>
+              <span className="text-[10px] uppercase tracking-wider" style={{ color: 'var(--text-subtle)' }}>Learning Platform</span>
             </div>
           </div>
           <button
@@ -162,7 +162,7 @@ const Layout = ({
                 </h1>
               </div>
             </div>
-            <p className="text-[10px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-subtle)' }}>IELTS Learning Platform</p>
+            <p className="text-[10px] uppercase tracking-widest font-medium" style={{ color: 'var(--text-subtle)' }}>Learning Platform</p>
           </div>
 
           {/* Mobile Menu Header */}
